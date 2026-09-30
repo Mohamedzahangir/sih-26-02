@@ -56,15 +56,25 @@ await settle(1100);
 /* ------------------------------- 1. KIOSK -------------------------------- */
 console.log('\n[KIOSK /kiosk]');
 await go('/kiosk');
-ok((await page.locator('h1').first().innerText()).includes('Explore the Legacy'), 'hero headline renders');
-ok((await page.getByRole('link', { name: /view timeline/i }).count()) > 0, 'VIEW TIMELINE CTA present');
+const heroH1 = await page.locator('h1').first().innerText();
+ok(heroH1.includes('AMBEDKAR') && heroH1.includes('HERITAGE HUB'), 'brand hero headline renders');
 ok((await page.getByRole('link', { name: /explore the archive/i }).count()) >= 1, 'EXPLORE THE ARCHIVE CTA present');
+ok((await page.locator('a[href="/ask"]:has-text("Ask the Archive")').count()) >= 1, 'ASK THE ARCHIVE CTA present');
+ok((await page.locator('a[href="/digitize"]:has-text("Digitize a document")').count()) >= 1, 'DIGITIZE A DOCUMENT CTA present');
 ok((await page.getByText('MANUSCRIPTS').count()) > 0, 'collection tiles present');
+ok((await page.getByText('Have a physical document?').count()) > 0, 'QR band section present');
+ok(
+  (await page.locator('section:has-text("Have a physical document?") a[href="/digitize"]').count()) >= 1,
+  'QR band links the digitizer',
+);
 ok((await page.getByText('Featured Archive').count()) > 0, 'featured section present');
+const featuredLinks = await page.locator('section:has-text("Featured Archive") a[href^="/document/"]').count();
+ok(featuredLinks === 4, `featured shows 4 records (got ${featuredLinks})`);
 await page.screenshot({ path: `${SHOT}/01-kiosk.png`, fullPage: false });
 
-// collection tile navigates with filter
-await page.getByText('Speeches', { exact: true }).first().click();
+// collection tile navigates with filter (target the tile link itself — the
+// featured grid above it also renders records whose label is "Speeches")
+await page.locator('a[href*="category=Speeches"]').click();
 await settle(1000);
 ok(page.url().includes('/archive') && page.url().includes('category=Speeches'), `tile navigates with filter (${page.url()})`);
 const speechCards = await page.locator('main article').count();
@@ -130,11 +140,17 @@ ok((await page.getByText('Sample extracted text — not a verified transcription
 await page.getByRole('button', { name: 'Close', exact: true }).click();
 await settle(400);
 
-await page.getByRole('button', { name: /ask about this/i }).click();
-await settle(600);
-ok((await page.getByText(/Phase 2/).count()) > 0, 'ask panel labels Phase 2');
-await page.getByRole('button', { name: 'Close', exact: true }).click();
-await settle(400);
+await page.getByRole('link', { name: /ask about this/i }).click();
+await page.waitForURL('**/ask?doc=ms-001', { timeout: 8000 });
+await settle(1600);
+ok(
+  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Ask the Archive'),
+  'ask entry opens /ask with document context',
+);
+ok(
+  (await page.locator('section:has(h2)').first().innerText()).includes('Draft Notes on Constitutional Reform'),
+  'current document strip rendered',
+);
 
 // unknown id
 await go('/document/does-not-exist');
@@ -204,6 +220,14 @@ await page.locator('[role="option"]').filter({ hasText: 'English' }).first().cli
 await settle(700);
 ok(await page.evaluate(() => document.documentElement.lang) === 'en', 'English restored');
 ok((await page.getByText('Explore Archive').count()) > 0, 'English copy restored');
+
+// ask + digitize entry points in the navbar
+ok((await page.locator('header nav a[href="/ask"]').count()) === 1, 'navbar Ask link present');
+ok((await page.locator('header nav a[href="/digitize"]').count()) === 1, 'navbar digitize CTA present');
+await page.locator('header nav').getByRole('link', { name: 'Ask', exact: true }).click();
+await settle(900);
+ok(page.url().includes('/ask'), 'navbar Ask link works');
+await go('/archive');
 
 // accessibility toggles
 await page.getByRole('button', { name: 'Accessibility options' }).first().click();
@@ -362,12 +386,90 @@ ok((await page.getByText('Added this session').count()) > 0, 'session badge show
 await page.screenshot({ path: `${SHOT}/14-archive-session.png` });
 
 /* ---------------------------- 9. ENTRY POINTS -------------------------- */
-console.log('\n[PHASE 2 ENTRY POINTS /kiosk]');
+console.log('\n[ENTRY POINTS /kiosk]');
 await go('/kiosk');
 ok((await page.getByRole('link', { name: /SCAN QR/i }).count()) > 0, 'kiosk quick-access scan card links /scan');
-ok((await page.getByRole('link', { name: /DIGITIZE DOCUMENT/i }).count()) > 0, 'kiosk quick-access digitize card links /ocr');
+ok((await page.getByRole('link', { name: /DIGITIZE DOCUMENT/i }).count()) > 0, 'kiosk quick-access digitize card links /digitize');
 ok((await page.getByRole('link', { name: /Scan QR/i }).count()) > 0, 'footer links the scanner');
 ok((await page.getByRole('link', { name: /Digitize document/i }).count()) > 0, 'footer links the OCR desk');
+
+/* --------------------------- 9b. ASK / DEMO / DIGITIZE ------------------ */
+console.log('\n[ASK /ask]');
+await go('/ask');
+ok(
+  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Ask the Archive'),
+  'ask page renders',
+);
+ok(
+  (await page.locator('button:has-text("Show me records related to the Constitution.")').count()) === 1,
+  'suggestion chips offered',
+);
+ok((await page.locator('text=Ask a question to see the records').count()) >= 1, 'context panel idle state');
+
+await page.locator('button:has-text("Show me records related to the Constitution.")').click();
+await settle(400);
+ok(
+  (await page.locator('[role="status"]:has-text("Searching the archive")').count()) === 1,
+  'loading stages announced',
+);
+await page.waitForSelector('text=SOURCES FROM THE ARCHIVE', { timeout: 7000 });
+ok(
+  (await page.locator('article p').first().innerText()).includes('Constitution'),
+  'answer rendered',
+);
+const sourceCards = await page.locator('article a[href^="/document/"]').count();
+ok(sourceCards >= 2 && sourceCards <= 4, `2-4 source cards shown (${sourceCards})`);
+const contextStats = (await page.locator('aside dl').innerText()).toLowerCase();
+ok(
+  /documents found/.test(contextStats) &&
+    /relevant records/.test(contextStats) &&
+    /topics/.test(contextStats) &&
+    /languages/.test(contextStats),
+  'archive context stats rendered',
+);
+await page.screenshot({ path: `${SHOT}/15-ask.png` });
+
+await page.fill('#ask-question', 'quantum entanglement mechanics');
+await page.click('button[type="submit"]');
+await page.waitForSelector('text=No close match', { timeout: 7000 });
+ok(
+  (await page.locator('text=find a closely matching record').count()) >= 1,
+  'unknown query shows fallback copy',
+);
+
+console.log('\n[DEMO TOUR /kiosk]');
+await go('/kiosk');
+await page.click('header button:has-text("DEMO")');
+await settle(500);
+ok((await page.locator('[role="dialog"]').count()) === 1, 'demo popover opens');
+const demoSteps = await page.locator('[role="dialog"] ol button').count();
+ok(demoSteps === 10, `10 tour steps (${demoSteps})`);
+await page.click('[role="dialog"] button[aria-label="Close"]');
+await settle(400);
+ok((await page.locator('[role="dialog"]').count()) === 0, 'demo popover closes');
+
+console.log('\n[DIGITIZE /digitize + /ocr]');
+await go('/digitize');
+ok(
+  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Digitize a Heritage Document'),
+  '/digitize renders the OCR desk',
+);
+await go('/ocr');
+ok(
+  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Digitize a Heritage Document'),
+  '/ocr alias renders the same desk',
+);
+await go('/digitize?auto=1&lang=hi');
+ok(
+  (await page.getByText(/Processing document|Document detected|Recognizing text|DOCUMENT DIGITIZED/i).count()) >= 1,
+  '?auto=1 auto-starts the pipeline',
+);
+await page.waitForSelector('text=DOCUMENT DIGITIZED', { timeout: 15000 });
+ok(
+  (await page.getByRole('radio', { name: 'हिन्दी', exact: true }).getAttribute('aria-checked')) === 'true',
+  '?lang=hi preselects the Hindi translation',
+);
+await page.screenshot({ path: `${SHOT}/16-digitize.png` });
 
 /* ----------------------------- 10. RESPONSIVE ----------------------------- */
 console.log('\n[RESPONSIVE]');

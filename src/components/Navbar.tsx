@@ -4,11 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import AccessibilityPanel from './AccessibilityPanel';
+import DemoTour from './DemoTour';
+import { ButtonLink } from './Button';
 import { useT, type TranslationKey } from '../i18n';
 
 const LINKS: { to: string; labelKey: TranslationKey }[] = [
   { to: '/kiosk', labelKey: 'nav.home' },
   { to: '/archive', labelKey: 'nav.archive' },
+  { to: '/ask', labelKey: 'nav.ask' },
   { to: '/timeline', labelKey: 'nav.timeline' },
 ];
 
@@ -49,7 +52,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-9 md:flex" aria-label={t('nav.primary')}>
+        <nav className="ml-auto hidden items-center gap-6 lg:flex xl:gap-9" aria-label={t('nav.primary')}>
           {LINKS.map((link) => (
             <NavLink key={link.to} to={link.to} className={linkClass}>
               {({ isActive }) => (
@@ -64,9 +67,19 @@ export default function Navbar() {
               )}
             </NavLink>
           ))}
+          <ButtonLink
+            to="/digitize"
+            variant="primary"
+            className="hidden min-h-[46px] px-6 lg:inline-flex"
+          >
+            {t('nav.digitize')}
+          </ButtonLink>
         </nav>
 
-        <div className="ml-auto flex items-center gap-3 md:ml-0">
+        <div className="ml-auto flex items-center gap-3 lg:ml-0">
+          <div className="hidden sm:block">
+            <DemoTour />
+          </div>
           <LanguageSelector />
           <div className="hidden sm:block">
             <AccessibilityPanel />
@@ -76,7 +89,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen((value) => !value)}
             aria-label={menuOpen ? t('nav.menu.close') : t('nav.menu.open')}
             aria-expanded={menuOpen}
-            className="flex h-14 w-14 items-center justify-center border border-gold/35 text-parchment transition-colors hover:border-gold hover:text-gold md:hidden"
+            className="flex h-14 w-14 shrink-0 items-center justify-center border border-gold/35 text-parchment transition-colors hover:border-gold hover:text-gold lg:hidden"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -90,7 +103,7 @@ export default function Navbar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-gold/20 md:hidden"
+            className="overflow-hidden border-t border-gold/20 lg:hidden"
             aria-label={t('nav.mobile')}
           >
             <div className="flex flex-col px-5 py-3">
@@ -108,6 +121,14 @@ export default function Navbar() {
                   {t(link.labelKey)}
                 </NavLink>
               ))}
+              <ButtonLink
+                to="/digitize"
+                variant="outline"
+                className="mt-4 w-full"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t('nav.digitize')}
+              </ButtonLink>
               <div className="flex justify-end py-4 sm:hidden">
                 <AccessibilityPanel />
               </div>

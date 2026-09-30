@@ -60,7 +60,6 @@ export default function DocumentViewer() {
   const record = getRecord(id, records);
   const [fullscreen, setFullscreen] = useState(false);
   const [readText, setReadText] = useState(false);
-  const [askOpen, setAskOpen] = useState(false);
 
   if (!record) {
     const identifier = id ?? '';
@@ -205,10 +204,10 @@ export default function DocumentViewer() {
               <BookOpen size={16} strokeWidth={1.8} />
               {t('doc.action.read')}
             </Button>
-            <Button variant="primary" onClick={() => setAskOpen(true)}>
+            <ButtonLink to={`/ask?doc=${record.id}`} variant="primary">
               <MessageSquareQuote size={16} strokeWidth={1.8} />
               {t('doc.action.ask')}
-            </Button>
+            </ButtonLink>
           </div>
 
           <div className="mt-6">
@@ -310,32 +309,6 @@ export default function DocumentViewer() {
         </p>
         <p className="font-display text-[1.2rem] leading-[1.8] whitespace-pre-line text-ink/85">
           {record.text}
-        </p>
-      </Modal>
-
-      <Modal
-        open={askOpen}
-        onClose={() => setAskOpen(false)}
-        title={t('doc.ask.title')}
-        subtitle={t('doc.ask.subtitle')}
-        size="md"
-        closeLabel={t('common.close')}
-        backdropLabel={t('common.closeDialog')}
-      >
-        <p className="text-[0.95rem] leading-relaxed text-cool">{t('doc.ask.desc')}</p>
-        <ul className="mt-6 space-y-3">
-          {(['doc.ask.q1', 'doc.ask.q2', 'doc.ask.q3'] as const).map((key) => (
-            <li
-              key={key}
-              className="flex items-start gap-3 border border-gold/25 bg-ink/50 px-4 py-3.5 text-[0.9rem] text-parchment/90"
-            >
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-gold" aria-hidden="true" />
-              {t(key)}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 border-t border-gold/20 pt-5 text-[0.72rem] leading-relaxed text-muted">
-          {t('doc.ask.note')}
         </p>
       </Modal>
     </div>

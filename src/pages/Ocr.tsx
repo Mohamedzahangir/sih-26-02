@@ -16,7 +16,7 @@ import {
 import SectionHeader from '../components/SectionHeader';
 import Footer from '../components/Footer';
 import Button, { ButtonLink } from '../components/Button';
-import TranslationPanel from '../components/TranslationPanel';
+import TranslationPanel, { type TranslationChoice } from '../components/TranslationPanel';
 import { useT } from '../i18n';
 import { usePreferences } from '../context/PreferencesContext';
 import { useArchive } from '../context/ArchiveContext';
@@ -66,6 +66,11 @@ export default function Ocr() {
   const { addRecord, sessionIds } = useArchive();
   const { show } = useToast();
 
+  const autoRun = params.get('auto') === '1';
+  const langParam = params.get('lang');
+  const translationChoice: TranslationChoice =
+    langParam === 'hi' || langParam === 'ta' || langParam === 'mr' ? langParam : 'original';
+
   const [phase, setPhase] = useState<Phase>(
     params.get('state') === 'error' ? 'error' : 'idle',
   );
@@ -73,6 +78,7 @@ export default function Ocr() {
   const [typed, setTyped] = useState('');
   const [added, setAdded] = useState(false);
   const timersRef = useRef<number[]>([]);
+  const autoStartedRef = useRef(false);
 
   const isAdded = added || sessionIds.includes(OCR_DOCUMENT_ID);
 
@@ -94,6 +100,20 @@ export default function Ocr() {
       window.setTimeout(() => setPhase('done'), STEP_KEYS.length * STEP_MS),
     );
   }, [clearTimers]);
+
+  /* demo mode: ?auto=1 starts the pipeline as soon as the digitizer opens */
+  useEffect(() => {
+    if (!autoRun) return;
+    if (params.get('state') === 'error') return;
+    if (autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    runOcr();
+    return () => {
+      /* StrictMode remounts: allow the pipeline to start again cleanly */
+      autoStartedRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRun]);
 
   /* typewriter reveal of the extracted text */
   useEffect(() => {
@@ -366,9 +386,10 @@ export default function Ocr() {
                   <div>
                     <p className="kicker mb-4">{t('ocr.result.translated')}</p>
                     <TranslationPanel
+                      key={translationChoice}
                       recordId={OCR_DOCUMENT_ID}
                       originalText={ocrDocument.text}
-                      defaultChoice="original"
+                      defaultChoice={translationChoice}
                     />
                   </div>
 

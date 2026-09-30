@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Clock, FileScan, QrCode } from 'lucide-react';
+import { ArrowRight, FileScan, QrCode, Sparkles } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
 import ArchiveCard from '../components/ArchiveCard';
+import QrGlyph from '../components/QrGlyph';
 import Footer from '../components/Footer';
 import { ButtonLink } from '../components/Button';
 import { COLLECTION_TILES, getFeatured } from '../data';
@@ -44,7 +45,7 @@ export default function KioskHome() {
       ctaKey: 'home.quick.scan.cta',
     },
     {
-      to: '/ocr',
+      to: '/digitize',
       icon: <FileScan size={26} strokeWidth={1.5} />,
       labelKey: 'home.quick.ocr.label',
       titleKey: 'home.quick.ocr.title',
@@ -109,9 +110,13 @@ export default function KioskHome() {
                 {t('home.cta.archive')}
                 <ArrowRight size={17} strokeWidth={2} />
               </ButtonLink>
-              <ButtonLink to="/timeline" variant="outline">
-                <Clock size={17} strokeWidth={1.8} />
-                {t('home.cta.timeline')}
+              <ButtonLink to="/ask" variant="outline">
+                <Sparkles size={17} strokeWidth={1.8} />
+                {t('home.cta.ask')}
+              </ButtonLink>
+              <ButtonLink to="/digitize" variant="outline">
+                <FileScan size={17} strokeWidth={1.8} />
+                {t('home.cta.digitize')}
               </ButtonLink>
             </motion.div>
 
@@ -167,61 +172,66 @@ export default function KioskHome() {
         </div>
       </section>
 
-      {/* ------------------------------ QUICK ACCESS ----------------------------- */}
-      <section className="mx-auto max-w-[1500px] px-5 pt-14 pb-2 sm:px-8">
-        <SectionHeader
-          eyebrow={t('home.quick.eyebrow')}
-          title={t('home.quick.title')}
-          description={t('home.quick.desc')}
-        />
-        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {quickCards.map((card, index) => (
-            <motion.div
-              key={card.to}
-              initial={{ opacity: 0, y: 26 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.55, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Link
-                to={card.to}
-                className="group relative flex h-full min-h-[220px] flex-col justify-between overflow-hidden bg-ink-2/70 hairline p-7 transition-colors duration-300 hover:border-gold/70"
-              >
-                <span
-                  className="pointer-events-none absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{
-                    backgroundImage:
-                      'radial-gradient(120% 100% at 8% 0%, rgba(201,162,75,0.16), transparent 65%)',
-                  }}
-                  aria-hidden="true"
-                />
-                <span className="relative flex items-start justify-between gap-4">
-                  <span className="flex h-14 w-14 items-center justify-center border border-gold/50 text-gold transition-colors duration-300 group-hover:bg-gold group-hover:text-ink">
-                    {card.icon}
-                  </span>
-                  <span className="text-[0.62rem] font-semibold tracking-[0.26em] text-gold/80 uppercase">
-                    {t(card.labelKey)}
-                  </span>
-                </span>
-                <span className="relative mt-8 block">
-                  <span className="block font-display text-[clamp(1.7rem,3vw,2.3rem)] leading-none text-parchment transition-colors duration-300 group-hover:text-gold-2">
-                    {t(card.titleKey)}
-                  </span>
-                  <span className="mt-3 block text-[0.9rem] leading-relaxed text-cool">
-                    {t(card.descKey)}
-                  </span>
-                  <span className="mt-5 flex items-center gap-2 text-[0.66rem] font-semibold tracking-[0.24em] text-gold uppercase">
-                    {t(card.ctaKey)}
-                    <ArrowRight
-                      size={15}
-                      strokeWidth={2}
-                      className="transition-transform duration-300 group-hover:translate-x-1"
-                    />
-                  </span>
-                </span>
-              </Link>
-            </motion.div>
-          ))}
+      {/* -------------------------------- QR BAND -------------------------------- */}
+      <section className="border-b border-gold/20 bg-ink/60">
+        <div className="mx-auto grid max-w-[1500px] items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-16">
+          <div>
+            <p className="kicker">{t('home.qr.eyebrow')}</p>
+            <h2 className="mt-4 font-display text-[clamp(1.9rem,3.6vw,2.9rem)] leading-tight text-parchment">
+              {t('home.qr.title')}
+            </h2>
+            <p className="mt-4 max-w-xl text-[1rem] leading-relaxed text-cool">
+              {t('home.qr.desc')}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <ButtonLink to="/digitize" variant="primary">
+                {t('home.qr.cta')}
+                <ArrowRight size={17} strokeWidth={2} />
+              </ButtonLink>
+              <ButtonLink to="/scan" variant="outline">
+                <QrCode size={17} strokeWidth={1.8} />
+                {t('footer.scan')}
+              </ButtonLink>
+            </div>
+          </div>
+
+          <Link
+            to="/digitize"
+            className="group mx-auto block border border-gold/40 bg-ink-2 p-5 transition-colors duration-300 hover:border-gold lg:mx-0"
+          >
+            <QrGlyph
+              seed="digitize"
+              size={196}
+              label={t('home.qr.title')}
+              className="transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+            <span className="mt-4 block text-center text-[0.62rem] font-semibold tracking-[0.22em] text-gold/80 uppercase">
+              {t('home.qr.note')}
+            </span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ------------------------------- FEATURED ------------------------------- */}
+      <section className="border-b border-gold/20 bg-ink/40">
+        <div className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-20">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeader
+              eyebrow={t('home.featured.eyebrow')}
+              title={t('home.featured.title')}
+              description={t('home.featured.desc')}
+            />
+            <ButtonLink to="/archive" variant="outline">
+              {t('home.featured.viewAll')}
+              <ArrowRight size={16} strokeWidth={2} />
+            </ButtonLink>
+          </div>
+
+          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {featured.map((record, index) => (
+              <ArchiveCard key={record.id} record={record} index={index} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -274,24 +284,61 @@ export default function KioskHome() {
         </div>
       </section>
 
-      {/* ------------------------------- FEATURED ------------------------------- */}
+      {/* --------------------------- HERITAGE ACCESS ---------------------------- */}
       <section className="border-t border-gold/20 bg-ink/40">
         <div className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeader
-              eyebrow={t('home.featured.eyebrow')}
-              title={t('home.featured.title')}
-              description={t('home.featured.desc')}
-            />
-            <ButtonLink to="/archive" variant="outline">
-              {t('home.featured.viewAll')}
-              <ArrowRight size={16} strokeWidth={2} />
-            </ButtonLink>
-          </div>
-
-          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {featured.map((record, index) => (
-              <ArchiveCard key={record.id} record={record} index={index} />
+          <SectionHeader
+            eyebrow={t('home.quick.eyebrow')}
+            title={t('home.quick.title')}
+            description={t('home.quick.desc')}
+          />
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {quickCards.map((card, index) => (
+              <motion.div
+                key={card.to}
+                initial={{ opacity: 0, y: 26 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.55, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <Link
+                  to={card.to}
+                  className="group relative flex h-full min-h-[220px] flex-col justify-between overflow-hidden bg-ink-2/70 hairline p-7 transition-colors duration-300 hover:border-gold/70"
+                >
+                  <span
+                    className="pointer-events-none absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-100"
+                    style={{
+                      backgroundImage:
+                        'radial-gradient(120% 100% at 8% 0%, rgba(201,162,75,0.16), transparent 65%)',
+                    }}
+                    aria-hidden="true"
+                  />
+                  <span className="relative flex items-start justify-between gap-4">
+                    <span className="flex h-14 w-14 items-center justify-center border border-gold/50 text-gold transition-colors duration-300 group-hover:bg-gold group-hover:text-ink">
+                      {card.icon}
+                    </span>
+                    <span className="text-[0.62rem] font-semibold tracking-[0.26em] text-gold/80 uppercase">
+                      {t(card.labelKey)}
+                    </span>
+                  </span>
+                  <span className="relative mt-8 block">
+                    <span className="block font-display text-[clamp(1.7rem,3vw,2.3rem)] leading-none text-parchment transition-colors duration-300 group-hover:text-gold-2">
+                      {t(card.titleKey)}
+                    </span>
+                    <span className="mt-3 block text-[0.9rem] leading-relaxed text-cool">
+                      {t(card.descKey)}
+                    </span>
+                    <span className="mt-5 flex items-center gap-2 text-[0.66rem] font-semibold tracking-[0.24em] text-gold uppercase">
+                      {t(card.ctaKey)}
+                      <ArrowRight
+                        size={15}
+                        strokeWidth={2}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
+                    </span>
+                  </span>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>

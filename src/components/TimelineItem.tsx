@@ -57,7 +57,7 @@ export default function TimelineItem({ event, index, isOpen, onToggle }: Timelin
             type="button"
             onClick={onToggle}
             aria-expanded={isOpen}
-            className="w-full cursor-pointer p-5 text-left sm:p-7"
+            className="group w-full cursor-pointer p-5 text-left transition-colors duration-300 hover:bg-gold/[0.04] focus-visible:bg-gold/[0.04] sm:p-7"
           >
             <span className="flex items-start justify-between gap-5">
               <span className="block">
@@ -71,7 +71,11 @@ export default function TimelineItem({ event, index, isOpen, onToggle }: Timelin
                   {event.description}
                 </span>
               </span>
-              <span className="mt-1 flex h-12 w-12 shrink-0 items-center justify-center border border-gold/40 text-gold">
+              <span
+                className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center border text-gold transition-colors duration-300 group-hover:border-gold/70 ${
+                  isOpen ? 'border-gold/70' : 'border-gold/40'
+                }`}
+              >
                 {isOpen ? <Minus size={18} /> : <Plus size={18} />}
               </span>
             </span>

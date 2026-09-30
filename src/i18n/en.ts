@@ -2,7 +2,9 @@ export const en = {
   /* ------------------------------- navigation ------------------------------ */
   'nav.home': 'Home',
   'nav.archive': 'Explore Archive',
+  'nav.ask': 'Ask',
   'nav.timeline': 'Timeline',
+  'nav.digitize': 'Digitize document',
   'nav.tagline': 'Digital Heritage Archive',
   'nav.brand.1': 'AMBEDKAR',
   'nav.brand.2': 'HERITAGE HUB',
@@ -47,25 +49,32 @@ export const en = {
 
   /* ------------------------------- kiosk home ------------------------------ */
   'home.kicker': 'Digital Heritage Archive',
-  'home.title.1': 'Explore the Legacy',
-  'home.title.2': 'of Dr. B. R. Ambedkar',
-  'home.desc':
-    'Discover manuscripts, writings, speeches and historical records through an immersive digital archive.',
+  'home.title.1': 'AMBEDKAR',
+  'home.title.2': 'HERITAGE HUB',
+  'home.desc': 'Explore, preserve and understand our digital heritage.',
   'home.cta.archive': 'Explore the Archive',
+  'home.cta.ask': 'Ask the Archive',
+  'home.cta.digitize': 'Digitize a document',
   'home.cta.timeline': 'View Timeline',
   'home.stats.records': 'Records',
   'home.stats.collections': 'Collections',
   'home.stats.timeline': 'Timeline entries',
 
-  'home.collections.eyebrow': 'Browse by collection',
-  'home.collections.title': 'Explore the Collection',
+  'home.qr.eyebrow': 'Digitize a document',
+  'home.qr.title': 'Have a physical document?',
+  'home.qr.desc': 'Scan to digitize and explore it digitally.',
+  'home.qr.cta': 'Open the digitizer',
+  'home.qr.note': 'QR link · opens the digitizer',
+
+  'home.collections.eyebrow': 'Browse by type',
+  'home.collections.title': 'Explore by Type',
   'home.collections.desc':
-    'Four standing collections form the core of the archive. Select a collection to open the Digital Archive with that filter applied.',
+    'Four series form the core of this collection. Choose one — the Digital Archive opens with that filter applied.',
   'tile.open': 'Open collection',
 
   'home.featured.eyebrow': 'Selected from the holdings',
   'home.featured.title': 'Featured Archive',
-  'home.featured.desc': 'Three records chosen to open the collection.',
+  'home.featured.desc': 'Four records chosen to open the collection.',
   'home.featured.viewAll': 'View all records',
 
   'home.quick.eyebrow': 'Physical exhibits',
@@ -91,7 +100,7 @@ export const en = {
   'archive.count.other': '{n} records',
   'archive.results.in': 'in',
   'archive.results.matching': 'Matching “{q}”',
-  'archive.empty.title': 'No records found',
+  'archive.empty.title': 'No records found in the archive.',
   'archive.empty.desc':
     'Nothing in the archive matches this search. Try a different term, or reset the filters to browse the full collection.',
   'archive.reset': 'Reset search & filters',
@@ -159,16 +168,6 @@ export const en = {
   'doc.modal.fullscreen.subtitle': 'Full screen plate',
   'doc.modal.read.subtitle': 'Reading view',
   'doc.modal.read.warning': 'Sample extracted text — not a verified transcription',
-
-  'doc.ask.title': 'Ask about this record',
-  'doc.ask.subtitle': 'Ask the archive',
-  'doc.ask.desc':
-    'Natural-language questions against the archive arrive in a later phase. The questions below are examples of the enquiries this record will support once retrieval and translation are connected.',
-  'doc.ask.q1': 'Which records in this collection mention the Constitution?',
-  'doc.ask.q2': 'Show every manuscript held from the 1940s.',
-  'doc.ask.q3': 'What related photographs exist for this document?',
-  'doc.ask.note':
-    'Prototype note — this panel is illustrative. No AI service or external API is called in Phase 2.',
 
   /* -------------------------------- timeline -------------------------------- */
   'timeline.eyebrow': 'Chronology · {n} entries',
@@ -245,8 +244,7 @@ export const en = {
   'ocr.toast': 'Document successfully added to the Heritage Archive.',
 
   'ocr.error.title': 'OCR processing failed',
-  'ocr.error.desc':
-    'The recognition step did not complete. Nothing was lost — retry the scan or continue in demo mode.',
+  'ocr.error.desc': 'Unable to extract text. Try another image.',
   'ocr.retry': 'RETRY',
   'ocr.useDemo': 'USE DEMO MODE',
 
@@ -264,8 +262,68 @@ export const en = {
     'Archival photographs are drawn from the public domain, GODL India and CC BY-SA licensed media on Wikimedia Commons. Handwriting specimens are illustrative public-domain images used to demonstrate manuscript records.',
   'footer.disclaimer.body':
     'Prototype build — records marked SAMPLE contain demonstration metadata and placeholder text. Content must be verified against authoritative archival sources before publication.',
-  'footer.phase': 'SIH 2026 · Prototype Phase 2',
+  'footer.phase': 'SIH 2026 · Prototype Phase 3',
   'footer.meta': 'Frontend demonstration · No backend · Local mock data',
+
+  /* ------------------------------ ask the archive --------------------------- */
+  'ask.kicker': 'AI research assistant',
+  'ask.title': 'Ask the Archive',
+  'ask.desc': 'Explore the heritage collection through natural language.',
+  'ask.placeholder': 'Ask something about the archive…',
+  'ask.submit': 'Ask',
+  'ask.clear': 'Clear',
+  'ask.mic.note': 'Voice input is decorative in this prototype.',
+
+  'ask.suggestions.title': 'Suggested questions',
+  'ask.q1': 'What documents discuss education?',
+  'ask.q2': 'Show me records related to the Constitution.',
+  'ask.q3': 'Find speeches about social equality.',
+  'ask.q4': 'What manuscripts are available?',
+  'ask.q5': 'Show documents from the 1940s.',
+
+  'ask.loading.1': 'Searching the archive…',
+  'ask.loading.2': 'Reviewing relevant records…',
+  'ask.loading.3': 'Preparing response…',
+
+  'ask.answer.label': 'Answer',
+  'ask.sources.label': 'Sources from the archive',
+  'ask.basis': 'Based on records in the digital archive',
+  'ask.note':
+    'Prototype note — answers are locally stored sample responses paraphrased from catalogue records. No AI service or external API is called.',
+  'ask.unknown.title': 'No close match',
+  'ask.unknown':
+    'I couldn’t find a closely matching record. Try searching by topic, document type or year.',
+  'ask.again': 'Ask another question',
+
+  'ask.context.title': 'Archive context',
+  'ask.context.found': 'Documents found',
+  'ask.context.relevant': 'Relevant records',
+  'ask.context.topics': 'Topics',
+  'ask.context.languages': 'Languages',
+  'ask.context.idle': 'Ask a question to see the records behind the answer.',
+
+  'ask.doc.label': 'Current document',
+  'ask.doc.question': 'Tell me about this document.',
+  'ask.doc.open': 'Open full record',
+
+  /* -------------------------------- demo mode ------------------------------- */
+  'demo.pill': 'Demo',
+  'demo.open': 'Open demo mode',
+  'demo.title': 'Demo mode',
+  'demo.desc': 'Walk the full product journey, one step at a time.',
+  'demo.play': 'Auto-play',
+  'demo.stop': 'Stop',
+  'demo.note': 'Guided journey · sample data only',
+  'demo.step.1': 'Home',
+  'demo.step.2': 'Archive',
+  'demo.step.3': 'Open a document',
+  'demo.step.4': 'Ask about this',
+  'demo.step.5': 'AI response',
+  'demo.step.6': 'Digitize document',
+  'demo.step.7': 'QR / mobile page',
+  'demo.step.8': 'Upload & OCR',
+  'demo.step.9': 'Select language',
+  'demo.step.10': 'Translated text',
 
   /* --------------------------------- 404 ----------------------------------- */
   'notfound.kicker': '404 · Not found',

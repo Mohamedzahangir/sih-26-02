@@ -12,7 +12,7 @@ export const CATEGORIES: Category[] = [
   'Historical Documents',
 ];
 
-export const FEATURED_IDS = ['sp-002', 'ms-002', 'hd-001'];
+export const FEATURED_IDS = ['sp-002', 'ms-002', 'hd-001', 'ph-001'];
 
 /**
  * Physical exhibit codes resolve to archive records, so a QR label printed for a

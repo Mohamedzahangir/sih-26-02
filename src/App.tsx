@@ -12,6 +12,7 @@ import Navbar from './components/Navbar';
 import PageTransition from './components/PageTransition';
 import KioskHome from './pages/KioskHome';
 import Archive from './pages/Archive';
+import Ask from './pages/Ask';
 import DocumentViewer from './pages/DocumentViewer';
 import Timeline from './pages/Timeline';
 import Scan from './pages/Scan';
@@ -48,10 +49,12 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/kiosk" replace />} />
       <Route path="/kiosk" element={<KioskHome />} />
       <Route path="/archive" element={<Archive />} />
+      <Route path="/ask" element={<Ask />} />
       <Route path="/document/:id" element={<DocumentViewer />} />
       <Route path="/timeline" element={<Timeline />} />
       <Route path="/scan" element={<Scan />} />
       <Route path="/ocr" element={<Ocr />} />
+      <Route path="/digitize" element={<Ocr />} />
       <Route path="*" element={<NotFound />} />
     </Shell>
   );

@@ -25,7 +25,7 @@ const consoleErrors = [];
 page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text()));
 
 console.log('[LANDMARKS + HEADINGS]');
-const ROUTES = ['/kiosk', '/archive', '/document/ms-001', '/timeline', '/scan', '/ocr', '/missing-page'];
+const ROUTES = ['/kiosk', '/archive', '/ask', '/document/ms-001', '/timeline', '/scan', '/ocr', '/digitize', '/missing-page'];
 for (const route of ROUTES) {
   await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
 
@@ -72,6 +72,19 @@ ok(focusOrder.every((f) => f !== 'BODY'), 'focus never returns to body while tab
 const visibleFocus = focusOrder.filter((f) => f.includes('outline=solid') || f.includes('shadow=')).length;
 ok(visibleFocus >= 6, `visible focus indicator on tabbable elements (${visibleFocus}/8)`);
 
+// The Phase 3 navbar adds Ask / digitize / demo stops, so tab onward until the
+// fullscreen viewer control is focused, then activate it with Enter.
+let reachedFullscreen = false;
+for (let i = 0; i < 16 && !reachedFullscreen; i++) {
+  reachedFullscreen = await page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el.tagName !== 'BUTTON') return false;
+    const label = `${el.getAttribute('aria-label') || ''} ${el.textContent || ''}`.toLowerCase();
+    return label.includes('fullscreen');
+  });
+  if (!reachedFullscreen) await page.keyboard.press('Tab');
+}
+ok(reachedFullscreen, 'tabbing reaches the fullscreen viewer control');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(900);
 const modalOpen = await page.locator('[role="dialog"]').count();
@@ -96,6 +109,19 @@ const pickLanguage = async (optionName) => {
   await page.getByRole('option', { name: optionName }).click();
   await page.waitForTimeout(800);
 };
+// webfonts load asynchronously after the script text swaps — poll until ready
+const fontLoaded = async (family, sample, timeout = 6000) => {
+  const deadline = Date.now() + timeout;
+  for (;;) {
+    const ready = await page.evaluate(
+      ([f, s]) => document.fonts.check(`16px "${f}"`, s),
+      [family, sample],
+    );
+    if (ready) return true;
+    if (Date.now() > deadline) return false;
+    await page.waitForTimeout(250);
+  }
+};
 
 await page.goto(`${BASE}/archive`, { waitUntil: 'networkidle' });
 await pickLanguage(/हिन्दी/);
@@ -108,7 +134,7 @@ const hindi = await page.evaluate(() => ({
 ok(hindi.lang === 'hi', `html lang switches to hi (${hindi.lang})`);
 ok(hindi.glyphs > 50, `Devanagari UI text rendered (${hindi.glyphs} glyphs)`);
 ok(hindi.fontSans.includes('Noto Sans Devanagari'), `Noto Sans Devanagari applied (${hindi.fontSans.split(',')[0]})`);
-ok(hindi.loaded, 'Noto Sans Devanagari webfont loaded');
+ok(await fontLoaded('Noto Sans Devanagari', 'नमस्ते विरासत'), 'Noto Sans Devanagari webfont loaded');
 
 await pickLanguage(/தமிழ்/);
 const tamil = await page.evaluate(() => ({
@@ -120,7 +146,7 @@ const tamil = await page.evaluate(() => ({
 ok(tamil.lang === 'ta', `html lang switches to ta (${tamil.lang})`);
 ok(tamil.glyphs > 50, `Tamil UI text rendered (${tamil.glyphs} glyphs)`);
 ok(tamil.fontSans.includes('Noto Sans Tamil'), `Noto Sans Tamil applied (${tamil.fontSans.split(',')[0]})`);
-ok(tamil.loaded, 'Noto Sans Tamil webfont loaded');
+ok(await fontLoaded('Noto Sans Tamil', 'தமிழ் பாரம்பரியம்'), 'Noto Sans Tamil webfont loaded');
 
 await pickLanguage(/English/);
 ok(

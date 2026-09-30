@@ -64,14 +64,16 @@ export function ButtonLink({
   variant = 'primary',
   children,
   className = '',
+  onClick,
 }: {
   to: string;
   variant?: ButtonVariant;
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
-    <Link to={to} className={buttonClasses(variant, className)}>
+    <Link to={to} onClick={onClick} className={buttonClasses(variant, className)}>
       {children}
     </Link>
   );

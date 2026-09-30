@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Archive, Clock, FileScan, Home, QrCode } from 'lucide-react';
+import { Archive, Clock, FileScan, Home, MessageSquareQuote, QrCode } from 'lucide-react';
 import { useT } from '../i18n';
 
 export default function Footer() {
@@ -38,6 +38,12 @@ export default function Footer() {
               <Archive size={15} /> {t('nav.archive')}
             </Link>
             <Link
+              to="/ask"
+              className="flex items-center gap-2.5 text-[0.86rem] text-cool transition-colors hover:text-gold"
+            >
+              <MessageSquareQuote size={15} /> {t('nav.ask')}
+            </Link>
+            <Link
               to="/timeline"
               className="flex items-center gap-2.5 text-[0.86rem] text-cool transition-colors hover:text-gold"
             >
@@ -50,7 +56,7 @@ export default function Footer() {
               <QrCode size={15} /> {t('footer.scan')}
             </Link>
             <Link
-              to="/ocr"
+              to="/digitize"
               className="flex items-center gap-2.5 text-[0.86rem] text-cool transition-colors hover:text-gold"
             >
               <FileScan size={15} /> {t('footer.ocr')}

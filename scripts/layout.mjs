@@ -6,7 +6,7 @@ import { chromium } from 'playwright-core';
 const EXE = process.env.CHROME_EXE || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const BASE = process.env.BASE_URL ?? 'http://localhost:5173';
 
-const ROUTES = ['/kiosk', '/archive', '/document/ms-001', '/timeline', '/scan', '/ocr'];
+const ROUTES = ['/kiosk', '/archive', '/ask', '/document/ms-001', '/timeline', '/scan', '/ocr', '/digitize'];
 const VIEWPORTS = [
   { name: 'desktop-wide', width: 1920, height: 1080 },
   { name: 'desktop', width: 1440, height: 900 },
