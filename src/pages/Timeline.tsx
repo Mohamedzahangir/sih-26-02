@@ -5,9 +5,11 @@ import SectionHeader from '../components/SectionHeader';
 import TimelineItem from '../components/TimelineItem';
 import Footer from '../components/Footer';
 import { ButtonLink } from '../components/Button';
+import { useT } from '../i18n';
 import { timelineEvents } from '../data';
 
 export default function Timeline() {
+  const t = useT();
   const [openId, setOpenId] = useState<string | null>(timelineEvents[0]?.id ?? null);
 
   return (
@@ -20,9 +22,10 @@ export default function Timeline() {
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           >
             <SectionHeader
-              eyebrow={`Chronology · ${timelineEvents.length} entries`}
-              title="Journey Through History"
-              description="A century of milestones, each entry linked to the records that document it. Select an entry to open its full account."
+              as="h1"
+              eyebrow={t('timeline.eyebrow', { n: timelineEvents.length })}
+              title={t('timeline.title')}
+              description={t('timeline.desc')}
               align="center"
             />
           </motion.div>
@@ -34,11 +37,11 @@ export default function Timeline() {
             className="mt-9 flex flex-wrap justify-center gap-3"
           >
             <ButtonLink to="/archive" variant="outline">
-              Explore the Archive
+              {t('timeline.cta.archive')}
               <ArrowRight size={15} strokeWidth={2} />
             </ButtonLink>
             <ButtonLink to="/kiosk" variant="ghost">
-              Return to kiosk
+              {t('timeline.cta.home')}
             </ButtonLink>
           </motion.div>
         </div>
@@ -60,7 +63,9 @@ export default function Timeline() {
         <div className="mt-4 flex flex-col items-center gap-4">
           <span className="h-16 w-px bg-gradient-to-b from-gold/40 to-transparent" aria-hidden="true" />
           <p className="text-center text-[0.7rem] tracking-[0.26em] text-muted uppercase">
-            End of chronology · {timelineEvents[timelineEvents.length - 1]?.year}
+            {t('timeline.end', {
+              year: timelineEvents[timelineEvents.length - 1]?.year ?? '',
+            })}
           </p>
         </div>
       </section>

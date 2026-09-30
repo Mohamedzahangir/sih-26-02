@@ -16,10 +16,27 @@
   /* --- type --- */
   --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display-deva: 'Noto Serif Devanagari', 'Cormorant Garamond', Georgia, serif;
+  --font-sans-deva: 'Noto Sans Devanagari', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display-taml: 'Noto Serif Tamil', 'Cormorant Garamond', Georgia, serif;
+  --font-sans-taml: 'Noto Sans Tamil', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
   color-scheme: dark;
+}
+
+/* --- script-aware type: Devanagari (hi/mr) and Tamil (ta) --- */
+
+html[lang='hi'],
+html[lang='mr'] {
+  --font-display: var(--font-display-deva);
+  --font-sans: var(--font-sans-deva);
+}
+
+html[lang='ta'] {
+  --font-display: var(--font-display-taml);
+  --font-sans: var(--font-sans-taml);
 }
 
 html {

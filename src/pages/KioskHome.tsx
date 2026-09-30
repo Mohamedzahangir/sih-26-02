@@ -1,20 +1,57 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Clock } from 'lucide-react';
+import { ArrowRight, Clock, FileScan, QrCode } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
 import ArchiveCard from '../components/ArchiveCard';
 import Footer from '../components/Footer';
 import { ButtonLink } from '../components/Button';
-import { COLLECTION_TILES, archiveRecords, getFeatured } from '../data';
+import { COLLECTION_TILES, getFeatured } from '../data';
 import { asset } from '../lib/asset';
+import { CATEGORY_LABEL_KEYS, useT, type TranslationKey } from '../i18n';
+import { useArchive } from '../context/ArchiveContext';
 
 const fadeUp = {
   initial: { opacity: 0, y: 26 },
   animate: { opacity: 1, y: 0 },
 };
 
+const TILE_BLURB_KEYS: Record<string, TranslationKey> = {
+  Manuscripts: 'tile.manuscripts.blurb',
+  Writings: 'tile.writings.blurb',
+  Speeches: 'tile.speeches.blurb',
+  Photographs: 'tile.photographs.blurb',
+};
+
 export default function KioskHome() {
-  const featured = getFeatured();
+  const t = useT();
+  const { records } = useArchive();
+  const featured = getFeatured(records);
+
+  const quickCards: {
+    to: string;
+    icon: React.ReactNode;
+    labelKey: TranslationKey;
+    titleKey: TranslationKey;
+    descKey: TranslationKey;
+    ctaKey: TranslationKey;
+  }[] = [
+    {
+      to: '/scan',
+      icon: <QrCode size={26} strokeWidth={1.5} />,
+      labelKey: 'home.quick.scan.label',
+      titleKey: 'home.quick.scan.title',
+      descKey: 'home.quick.scan.desc',
+      ctaKey: 'home.quick.scan.cta',
+    },
+    {
+      to: '/ocr',
+      icon: <FileScan size={26} strokeWidth={1.5} />,
+      labelKey: 'home.quick.ocr.label',
+      titleKey: 'home.quick.ocr.title',
+      descKey: 'home.quick.ocr.desc',
+      ctaKey: 'home.quick.ocr.cta',
+    },
+  ];
 
   return (
     <div className="vignette">
@@ -35,18 +72,18 @@ export default function KioskHome() {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="kicker mb-6"
             >
-              Digital Heritage Archive
+              {t('home.kicker')}
             </motion.p>
 
             <motion.h1
               {...fadeUp}
               transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-              className="font-display text-[clamp(2.8rem,6.2vw,5.4rem)] leading-[0.98] font-medium text-parchment"
+              className="font-display text-[clamp(2.4rem,6.2vw,5.4rem)] leading-[0.98] font-medium text-parchment"
             >
-              Explore the Legacy
+              {t('home.title.1')}
               <br />
               {' '}
-              <span className="text-gold">of Dr. B. R. Ambedkar</span>
+              <span className="text-gold">{t('home.title.2')}</span>
             </motion.h1>
 
             <motion.div
@@ -60,8 +97,7 @@ export default function KioskHome() {
               transition={{ duration: 0.7, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="mt-7 max-w-xl text-[1.05rem] leading-relaxed text-cool"
             >
-              Discover manuscripts, writings, speeches and historical records through an
-              immersive digital archive.
+              {t('home.desc')}
             </motion.p>
 
             <motion.div
@@ -70,12 +106,12 @@ export default function KioskHome() {
               className="mt-10 flex flex-wrap gap-4"
             >
               <ButtonLink to="/archive" variant="primary">
-                Explore the Archive
+                {t('home.cta.archive')}
                 <ArrowRight size={17} strokeWidth={2} />
               </ButtonLink>
               <ButtonLink to="/timeline" variant="outline">
                 <Clock size={17} strokeWidth={1.8} />
-                View Timeline
+                {t('home.cta.timeline')}
               </ButtonLink>
             </motion.div>
 
@@ -85,9 +121,9 @@ export default function KioskHome() {
               className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-gold/20 pt-6"
             >
               {[
-                { term: 'Records', value: String(archiveRecords.length) },
-                { term: 'Collections', value: '05' },
-                { term: 'Timeline entries', value: '10' },
+                { term: t('home.stats.records'), value: String(records.length) },
+                { term: t('home.stats.collections'), value: '05' },
+                { term: t('home.stats.timeline'), value: '10' },
               ].map((item) => (
                 <div key={item.term}>
                   <dt className="text-[0.6rem] font-semibold tracking-[0.24em] text-muted uppercase">
@@ -131,12 +167,70 @@ export default function KioskHome() {
         </div>
       </section>
 
+      {/* ------------------------------ QUICK ACCESS ----------------------------- */}
+      <section className="mx-auto max-w-[1500px] px-5 pt-14 pb-2 sm:px-8">
+        <SectionHeader
+          eyebrow={t('home.quick.eyebrow')}
+          title={t('home.quick.title')}
+          description={t('home.quick.desc')}
+        />
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {quickCards.map((card, index) => (
+            <motion.div
+              key={card.to}
+              initial={{ opacity: 0, y: 26 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.55, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Link
+                to={card.to}
+                className="group relative flex h-full min-h-[220px] flex-col justify-between overflow-hidden bg-ink-2/70 hairline p-7 transition-colors duration-300 hover:border-gold/70"
+              >
+                <span
+                  className="pointer-events-none absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(120% 100% at 8% 0%, rgba(201,162,75,0.16), transparent 65%)',
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="relative flex items-start justify-between gap-4">
+                  <span className="flex h-14 w-14 items-center justify-center border border-gold/50 text-gold transition-colors duration-300 group-hover:bg-gold group-hover:text-ink">
+                    {card.icon}
+                  </span>
+                  <span className="text-[0.62rem] font-semibold tracking-[0.26em] text-gold/80 uppercase">
+                    {t(card.labelKey)}
+                  </span>
+                </span>
+                <span className="relative mt-8 block">
+                  <span className="block font-display text-[clamp(1.7rem,3vw,2.3rem)] leading-none text-parchment transition-colors duration-300 group-hover:text-gold-2">
+                    {t(card.titleKey)}
+                  </span>
+                  <span className="mt-3 block text-[0.9rem] leading-relaxed text-cool">
+                    {t(card.descKey)}
+                  </span>
+                  <span className="mt-5 flex items-center gap-2 text-[0.66rem] font-semibold tracking-[0.24em] text-gold uppercase">
+                    {t(card.ctaKey)}
+                    <ArrowRight
+                      size={15}
+                      strokeWidth={2}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </span>
+                </span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* ------------------------------ COLLECTION ------------------------------ */}
       <section className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-24">
         <SectionHeader
-          eyebrow="Browse by collection"
-          title="Explore the Collection"
-          description="Four standing collections form the core of the archive. Select a collection to open the Digital Archive with that filter applied."
+          eyebrow={t('home.collections.eyebrow')}
+          title={t('home.collections.title')}
+          description={t('home.collections.desc')}
         />
 
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -164,11 +258,13 @@ export default function KioskHome() {
                 <span className="relative flex h-full flex-col justify-end p-6">
                   <span className="mb-3 h-px w-10 bg-gold" />
                   <span className="font-display text-[1.7rem] leading-none tracking-[0.1em] text-parchment transition-colors group-hover:text-gold-2">
-                    {tile.label}
+                    {t(CATEGORY_LABEL_KEYS[tile.category])}
                   </span>
-                  <span className="mt-3 text-[0.8rem] leading-snug text-cool">{tile.blurb}</span>
+                  <span className="mt-3 text-[0.8rem] leading-snug text-cool">
+                    {t(TILE_BLURB_KEYS[tile.category])}
+                  </span>
                   <span className="mt-4 flex items-center gap-2 text-[0.64rem] font-semibold tracking-[0.24em] text-gold uppercase">
-                    Open collection
+                    {t('tile.open')}
                     <ArrowRight size={14} strokeWidth={2} />
                   </span>
                 </span>
@@ -183,12 +279,12 @@ export default function KioskHome() {
         <div className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 lg:py-24">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeader
-              eyebrow="Selected from the holdings"
-              title="Featured Archive"
-              description="Three records chosen to open the collection."
+              eyebrow={t('home.featured.eyebrow')}
+              title={t('home.featured.title')}
+              description={t('home.featured.desc')}
             />
             <ButtonLink to="/archive" variant="outline">
-              View all records
+              {t('home.featured.viewAll')}
               <ArrowRight size={16} strokeWidth={2} />
             </ButtonLink>
           </div>

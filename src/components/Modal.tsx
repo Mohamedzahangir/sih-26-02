@@ -10,6 +10,8 @@ interface ModalProps {
   children: ReactNode;
   size?: 'md' | 'lg' | 'xl';
   tone?: 'dark' | 'paper';
+  closeLabel?: string;
+  backdropLabel?: string;
 }
 
 const SIZES = { md: 'max-w-2xl', lg: 'max-w-4xl', xl: 'max-w-6xl' } as const;
@@ -22,6 +24,8 @@ export default function Modal({
   children,
   size = 'md',
   tone = 'dark',
+  closeLabel = 'Close',
+  backdropLabel = 'Close dialog',
 }: ModalProps) {
   useEffect(() => {
     if (!open) return;
@@ -43,7 +47,7 @@ export default function Modal({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
           <motion.button
             type="button"
-            aria-label="Close dialog"
+            aria-label={backdropLabel}
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -83,7 +87,7 @@ export default function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={closeLabel}
                 className={`mt-1 flex h-14 w-14 shrink-0 items-center justify-center border transition-colors ${
                   tone === 'paper'
                     ? 'border-ink/20 text-ink hover:bg-ink/10'

@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Globe } from 'lucide-react';
 import { LANGUAGES, usePreferences } from '../context/PreferencesContext';
+import { useT } from '../i18n';
 
 export default function LanguageSelector() {
   const { language, setLanguage } = usePreferences();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const current = LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
@@ -32,11 +34,11 @@ export default function LanguageSelector() {
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Select language"
+        aria-label={t('lang.select')}
         className="flex h-14 items-center gap-2.5 border border-gold/35 px-4 text-[0.7rem] font-semibold tracking-[0.2em] text-parchment uppercase transition-colors hover:border-gold hover:text-gold"
       >
         <Globe size={17} strokeWidth={1.7} />
-        {current.code}
+        {current.short}
       </button>
 
       <AnimatePresence>
@@ -77,8 +79,7 @@ export default function LanguageSelector() {
               );
             })}
             <li className="mt-1 border-t border-gold/20 px-4 pt-3 pb-2 text-[0.64rem] leading-relaxed text-muted">
-              Interface translation is scheduled for Phase 2. English content is shown in
-              this phase.
+              {t('lang.note')}
             </li>
           </motion.ul>
         )}

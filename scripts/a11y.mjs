@@ -25,28 +25,33 @@ const consoleErrors = [];
 page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text()));
 
 console.log('[LANDMARKS + HEADINGS]');
-await page.goto(`${BASE}/kiosk`, { waitUntil: 'networkidle' });
+const ROUTES = ['/kiosk', '/archive', '/document/ms-001', '/timeline', '/scan', '/ocr', '/missing-page'];
+for (const route of ROUTES) {
+  await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
 
-const landmarks = await page.evaluate(() => ({
-  nav: document.querySelectorAll('nav').length,
-  main: document.querySelectorAll('main').length,
-  footer: document.querySelectorAll('footer').length,
-  h1: [...document.querySelectorAll('h1')].map((h) => h.textContent.trim()),
-  headings: [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => Number(h.tagName[1])),
-  imgNoAlt: [...document.querySelectorAll('img')].filter((i) => !i.hasAttribute('alt')).length,
-  labelledButtons: [...document.querySelectorAll('button')].filter(
-    (b) => !(b.textContent || '').trim() && !b.getAttribute('aria-label') && !b.getAttribute('aria-labelledby')
-  ).length,
-}));
+  const landmarks = await page.evaluate(() => ({
+    nav: document.querySelectorAll('nav').length,
+    main: document.querySelectorAll('main').length,
+    footer: document.querySelectorAll('footer').length,
+    h1: [...document.querySelectorAll('h1')].map((h) => h.textContent.trim()),
+    headings: [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => Number(h.tagName[1])),
+    imgNoAlt: [...document.querySelectorAll('img')].filter((i) => !i.hasAttribute('alt')).length,
+    labelledButtons: [...document.querySelectorAll('button')].filter(
+      (b) => !(b.textContent || '').trim() && !b.getAttribute('aria-label') && !b.getAttribute('aria-labelledby')
+    ).length,
+  }));
 
-ok(landmarks.nav >= 1, `nav landmark present (${landmarks.nav})`);
-ok(landmarks.main === 1, `exactly one main landmark (${landmarks.main})`);
-ok(landmarks.footer === 1, `footer landmark present (${landmarks.footer})`);
-ok(landmarks.h1.length === 1, `single h1 on kiosk (${JSON.stringify(landmarks.h1)})`);
-ok(landmarks.imgNoAlt === 0, `every image has an alt attribute (${landmarks.imgNoAlt} missing)`);
-ok(landmarks.labelledButtons === 0, `every button has a label (${landmarks.labelledButtons} unlabelled)`);
-ok(landmarks.headings.every((h, i) => i === 0 || h <= landmarks.headings[i - 1] + 1),
-  `heading levels do not skip (${landmarks.headings.join('>')})`);
+  ok(landmarks.nav >= 1, `${route} · nav landmark present (${landmarks.nav})`);
+  ok(landmarks.main === 1, `${route} · exactly one main landmark (${landmarks.main})`);
+  ok(landmarks.footer === 1, `${route} · footer landmark present (${landmarks.footer})`);
+  ok(landmarks.h1.length === 1, `${route} · single h1 (${JSON.stringify(landmarks.h1)})`);
+  ok(landmarks.imgNoAlt === 0, `${route} · every image has an alt attribute (${landmarks.imgNoAlt} missing)`);
+  ok(landmarks.labelledButtons === 0, `${route} · every button has a label (${landmarks.labelledButtons} unlabelled)`);
+  ok(
+    landmarks.headings.every((h, i) => i === 0 || h <= landmarks.headings[i - 1] + 1),
+    `${route} · heading levels do not skip (${landmarks.headings.join('>')})`,
+  );
+}
 
 console.log('\n[KEYBOARD]');
 await page.goto(`${BASE}/document/ms-001`, { waitUntil: 'networkidle' });
@@ -82,6 +87,46 @@ const urlBefore = page.url();
 await page.keyboard.press('Enter');
 await page.waitForTimeout(600);
 ok(page.url() !== urlBefore, `keyboard Enter navigates (${page.url()})`);
+
+console.log('\n[LANGUAGE + SCRIPT FONTS]');
+const langButton = page.locator('button[aria-haspopup="listbox"]');
+const pickLanguage = async (optionName) => {
+  await langButton.click();
+  await page.waitForTimeout(400);
+  await page.getByRole('option', { name: optionName }).click();
+  await page.waitForTimeout(800);
+};
+
+await page.goto(`${BASE}/archive`, { waitUntil: 'networkidle' });
+await pickLanguage(/हिन्दी/);
+const hindi = await page.evaluate(() => ({
+  lang: document.documentElement.lang,
+  glyphs: (document.body.innerText.match(/[\u0900-\u097F]/g) || []).length,
+  fontSans: getComputedStyle(document.body).fontFamily,
+  loaded: document.fonts.check('16px "Noto Sans Devanagari"', 'नमस्ते विरासत'),
+}));
+ok(hindi.lang === 'hi', `html lang switches to hi (${hindi.lang})`);
+ok(hindi.glyphs > 50, `Devanagari UI text rendered (${hindi.glyphs} glyphs)`);
+ok(hindi.fontSans.includes('Noto Sans Devanagari'), `Noto Sans Devanagari applied (${hindi.fontSans.split(',')[0]})`);
+ok(hindi.loaded, 'Noto Sans Devanagari webfont loaded');
+
+await pickLanguage(/தமிழ்/);
+const tamil = await page.evaluate(() => ({
+  lang: document.documentElement.lang,
+  glyphs: (document.body.innerText.match(/[\u0B80-\u0BFF]/g) || []).length,
+  fontSans: getComputedStyle(document.body).fontFamily,
+  loaded: document.fonts.check('16px "Noto Sans Tamil"', 'தமிழ் பாரம்பரியம்'),
+}));
+ok(tamil.lang === 'ta', `html lang switches to ta (${tamil.lang})`);
+ok(tamil.glyphs > 50, `Tamil UI text rendered (${tamil.glyphs} glyphs)`);
+ok(tamil.fontSans.includes('Noto Sans Tamil'), `Noto Sans Tamil applied (${tamil.fontSans.split(',')[0]})`);
+ok(tamil.loaded, 'Noto Sans Tamil webfont loaded');
+
+await pickLanguage(/English/);
+ok(
+  (await page.evaluate(() => document.documentElement.lang)) === 'en',
+  'language restored to English',
+);
 
 console.log('\n[REDUCED MOTION]');
 await page.emulateMedia({ reducedMotion: 'reduce' });

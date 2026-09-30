@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Accessibility, Check, Eye, Type, Zap } from 'lucide-react';
 import { usePreferences } from '../context/PreferencesContext';
+import { useT } from '../i18n';
 
 function ToggleRow({
   icon,
@@ -47,6 +48,7 @@ function ToggleRow({
 export default function AccessibilityPanel() {
   const { largeText, toggleLargeText, highContrast, toggleHighContrast, reduceMotion, toggleReduceMotion } =
     usePreferences();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,7 @@ export default function AccessibilityPanel() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        aria-label="Accessibility options"
+        aria-label={t('a11y.open')}
         className={`flex h-14 w-14 items-center justify-center border transition-colors ${
           open ? 'border-gold text-gold' : 'border-gold/35 text-parchment hover:border-gold hover:text-gold'
         }`}
@@ -73,30 +75,30 @@ export default function AccessibilityPanel() {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="absolute right-0 z-50 mt-2 w-[19rem] border border-gold/30 bg-ink-2/95 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.9)] backdrop-blur-md"
           >
-            <p className="kicker border-b border-gold/20 px-4 py-3.5">Accessibility</p>
+            <p className="kicker border-b border-gold/20 px-4 py-3.5">{t('a11y.title')}</p>
             <ToggleRow
               icon={<Type size={18} strokeWidth={1.7} />}
-              label="Larger text"
-              hint="Increases interface scale for distance viewing"
+              label={t('a11y.large.label')}
+              hint={t('a11y.large.hint')}
               active={largeText}
               onToggle={toggleLargeText}
             />
             <ToggleRow
               icon={<Eye size={18} strokeWidth={1.7} />}
-              label="High contrast"
-              hint="Stronger text and border contrast"
+              label={t('a11y.contrast.label')}
+              hint={t('a11y.contrast.hint')}
               active={highContrast}
               onToggle={toggleHighContrast}
             />
             <ToggleRow
               icon={<Zap size={18} strokeWidth={1.7} />}
-              label="Reduce motion"
-              hint="Turns off transitions and animations"
+              label={t('a11y.motion.label')}
+              hint={t('a11y.motion.hint')}
               active={reduceMotion}
               onToggle={toggleReduceMotion}
             />
             <p className="border-t border-gold/20 px-4 py-3 text-[0.64rem] leading-relaxed text-muted">
-              Preferences are stored on this kiosk terminal only.
+              {t('a11y.note')}
             </p>
           </motion.div>
         )}

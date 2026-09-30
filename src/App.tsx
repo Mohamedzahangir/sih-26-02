@@ -14,8 +14,12 @@ import KioskHome from './pages/KioskHome';
 import Archive from './pages/Archive';
 import DocumentViewer from './pages/DocumentViewer';
 import Timeline from './pages/Timeline';
+import Scan from './pages/Scan';
+import Ocr from './pages/Ocr';
 import NotFound from './pages/NotFound';
 import { PreferencesProvider, usePreferences } from './context/PreferencesContext';
+import { ArchiveProvider } from './context/ArchiveContext';
+import { ToastProvider } from './context/ToastContext';
 
 function Shell({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -46,6 +50,8 @@ function AppRoutes() {
       <Route path="/archive" element={<Archive />} />
       <Route path="/document/:id" element={<DocumentViewer />} />
       <Route path="/timeline" element={<Timeline />} />
+      <Route path="/scan" element={<Scan />} />
+      <Route path="/ocr" element={<Ocr />} />
       <Route path="*" element={<NotFound />} />
     </Shell>
   );
@@ -65,7 +71,11 @@ export default function App() {
     <PreferencesProvider>
       <MotionGate>
         <Router>
-          <AppRoutes />
+          <ArchiveProvider>
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
+          </ArchiveProvider>
         </Router>
       </MotionGate>
     </PreferencesProvider>

@@ -4,6 +4,7 @@ import { ArrowRight, Minus, Plus } from 'lucide-react';
 import type { TimelineEvent } from '../types';
 import { getRecord } from '../data';
 import { asset } from '../lib/asset';
+import { useT } from '../i18n';
 
 interface TimelineItemProps {
   event: TimelineEvent;
@@ -15,6 +16,7 @@ interface TimelineItemProps {
 export default function TimelineItem({ event, index, isOpen, onToggle }: TimelineItemProps) {
   const related = getRecord(event.recordId);
   const fromLeft = index % 2 === 0;
+  const t = useT();
 
   return (
     <motion.li
@@ -105,7 +107,7 @@ export default function TimelineItem({ event, index, isOpen, onToggle }: Timelin
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-[0.6rem] font-semibold tracking-[0.24em] text-gold uppercase">
-                            Related archive record
+                            {t('timeline.related')}
                           </span>
                           <span className="mt-1 block truncate font-display text-[1.1rem] text-parchment">
                             {related.title}

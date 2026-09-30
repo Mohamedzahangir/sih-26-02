@@ -9,6 +9,7 @@
     "preview": "node ./node_modules/vite/bin/vite.js preview",
     "typecheck": "node ./node_modules/typescript/lib/tsc.js -b",
     "smoke": "node ./scripts/smoke.mjs",
+    "layout": "node ./scripts/layout.mjs",
     "a11y": "node ./scripts/a11y.mjs"
   },
   "dependencies": {

@@ -8,13 +8,13 @@ import {
   type ReactNode,
 } from 'react';
 
-export type LanguageCode = 'EN' | 'HI' | 'TA' | 'MR';
+export type LanguageCode = 'en' | 'hi' | 'ta' | 'mr';
 
-export const LANGUAGES: { code: LanguageCode; label: string; native: string }[] = [
-  { code: 'EN', label: 'English', native: 'English' },
-  { code: 'HI', label: 'Hindi', native: 'हिन्दी' },
-  { code: 'TA', label: 'Tamil', native: 'தமிழ்' },
-  { code: 'MR', label: 'Marathi', native: 'मराठी' },
+export const LANGUAGES: { code: LanguageCode; label: string; native: string; short: string }[] = [
+  { code: 'en', label: 'English', native: 'English', short: 'EN' },
+  { code: 'hi', label: 'Hindi', native: 'हिन्दी', short: 'HI' },
+  { code: 'ta', label: 'Tamil', native: 'தமிழ்', short: 'TA' },
+  { code: 'mr', label: 'Marathi', native: 'मराठी', short: 'MR' },
 ];
 
 interface PreferencesValue {
@@ -39,6 +39,14 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
+function readLanguage(): LanguageCode {
+  const stored = readStored<string | LanguageCode>('ahh.language', 'en');
+  const normalised = String(stored).toLowerCase();
+  return normalised === 'hi' || normalised === 'ta' || normalised === 'mr'
+    ? normalised
+    : 'en';
+}
+
 function writeStored(key: string, value: unknown) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
@@ -48,9 +56,7 @@ function writeStored(key: string, value: unknown) {
 }
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<LanguageCode>(() =>
-    readStored<LanguageCode>('ahh.language', 'EN'),
-  );
+  const [language, setLanguageState] = useState<LanguageCode>(() => readLanguage());
   const [largeText, setLargeText] = useState<boolean>(() => readStored('ahh.largeText', false));
   const [highContrast, setHighContrast] = useState<boolean>(() =>
     readStored('ahh.highContrast', false),
@@ -65,6 +71,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     root.classList.toggle('hc', highContrast);
     root.classList.toggle('reduce-motion', reduceMotion);
   }, [largeText, highContrast, reduceMotion]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = useCallback((code: LanguageCode) => {
     setLanguageState(code);

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import type { ArchiveRecord } from '../types';
 import { asset } from '../lib/asset';
+import { CATEGORY_LABEL_KEYS, useT } from '../i18n';
 
 interface DocumentCardProps {
   record: ArchiveRecord;
@@ -9,6 +10,7 @@ interface DocumentCardProps {
 }
 
 export default function DocumentCard({ record, index = 0 }: DocumentCardProps) {
+  const t = useT();
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -31,11 +33,11 @@ export default function DocumentCard({ record, index = 0 }: DocumentCardProps) {
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center py-1">
           <span className="truncate text-[0.62rem] font-semibold tracking-[0.22em] text-gold uppercase">
-            {record.type} · {record.year}
+            {t(CATEGORY_LABEL_KEYS[record.type])} · {record.year}
           </span>
-          <h4 className="mt-1.5 truncate font-display text-[1.12rem] leading-snug text-parchment transition-colors group-hover:text-gold-2">
+          <h3 className="mt-1.5 truncate font-display text-[1.12rem] leading-snug text-parchment transition-colors group-hover:text-gold-2">
             {record.title}
-          </h4>
+          </h3>
           <p className="mt-1 truncate text-[0.78rem] text-muted">{record.source}</p>
         </div>
       </Link>

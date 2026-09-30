@@ -14,27 +14,57 @@ export const CATEGORIES: Category[] = [
 
 export const FEATURED_IDS = ['sp-002', 'ms-002', 'hd-001'];
 
-export function getRecord(id: string | undefined): ArchiveRecord | undefined {
+/**
+ * Physical exhibit codes resolve to archive records, so a QR label printed for a
+ * plaque can point at a stable, human-readable id (`doc-001`) while the record
+ * keeps its catalogued id.
+ */
+const ID_ALIASES: Record<string, string> = {
+  'doc-001': 'hd-003',
+};
+
+/** Id used by the demo QR flow. */
+export const QR_TARGET_ID = 'doc-001';
+
+export function getRecord(
+  id: string | undefined,
+  records: ArchiveRecord[] = archiveRecords,
+): ArchiveRecord | undefined {
   if (!id) return undefined;
-  return archiveRecords.find((record) => record.id === id);
+  const resolved = ID_ALIASES[id] ?? id;
+  return records.find((record) => record.id === resolved);
 }
 
-export function getFeatured(): ArchiveRecord[] {
-  return FEATURED_IDS.map((id) => getRecord(id)).filter(
+/** The exhibit code a record is labelled with in the gallery (falls back to its id). */
+export function exhibitCode(recordId: string): string {
+  const entry = Object.entries(ID_ALIASES).find(([, target]) => target === recordId);
+  return entry ? entry[0] : recordId;
+}
+
+export function getFeatured(records: ArchiveRecord[] = archiveRecords): ArchiveRecord[] {
+  return FEATURED_IDS.map((id) => getRecord(id, records)).filter(
     (record): record is ArchiveRecord => Boolean(record),
   );
 }
 
-export function relatedRecords(id: string, limit = 3): ArchiveRecord[] {
-  const current = getRecord(id);
-  const sameType = archiveRecords.filter((r) => r.id !== id && r.type === current?.type);
-  const others = archiveRecords.filter((r) => r.id !== id && r.type !== current?.type);
+export function relatedRecords(
+  id: string,
+  limit = 3,
+  records: ArchiveRecord[] = archiveRecords,
+): ArchiveRecord[] {
+  const current = getRecord(id, records);
+  const sameType = records.filter((r) => r.id !== current?.id && r.type === current?.type);
+  const others = records.filter((r) => r.id !== current?.id && r.type !== current?.type);
   return [...sameType, ...others].slice(0, limit);
 }
 
-export function searchRecords(query: string, category: Category | 'All'): ArchiveRecord[] {
+export function searchRecords(
+  query: string,
+  category: Category | 'All',
+  records: ArchiveRecord[] = archiveRecords,
+): ArchiveRecord[] {
   const q = query.trim().toLowerCase();
-  return archiveRecords.filter((record) => {
+  return records.filter((record) => {
     const matchesCategory = category === 'All' || record.type === category;
     if (!matchesCategory) return false;
     if (!q) return true;
@@ -53,10 +83,13 @@ export function searchRecords(query: string, category: Category | 'All'): Archiv
   });
 }
 
-export function countByCategory(category: Category | 'All'): number {
+export function countByCategory(
+  category: Category | 'All',
+  records: ArchiveRecord[] = archiveRecords,
+): number {
   return category === 'All'
-    ? archiveRecords.length
-    : archiveRecords.filter((record) => record.type === category).length;
+    ? records.length
+    : records.filter((record) => record.type === category).length;
 }
 
 /** Kiosk landing tiles: label → route category */
