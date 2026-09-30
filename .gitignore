@@ -12,3 +12,7 @@ yarn-error.log*
 
 # smoke test screenshots
 shots/
+
+# dev server output
+dev.log
+dev.err

@@ -481,6 +481,14 @@ export function getTranslation(
   return `${content}\n\n${SAMPLE_NOTE[language]}`;
 }
 
+/** Raw page content without the standard sample note, or undefined. */
+export function getTranslationContent(
+  recordId: string,
+  language: LanguageCode,
+): string | undefined {
+  return INDEX.get(recordId)?.translations[language];
+}
+
 export function hasTranslation(recordId: string, language: LanguageCode): boolean {
   return Boolean(INDEX.get(recordId)?.translations[language]);
 }

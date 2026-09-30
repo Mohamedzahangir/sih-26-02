@@ -17,9 +17,11 @@ import DocumentViewer from './pages/DocumentViewer';
 import Timeline from './pages/Timeline';
 import Scan from './pages/Scan';
 import Ocr from './pages/Ocr';
+import Send from './pages/Send';
 import NotFound from './pages/NotFound';
 import { PreferencesProvider, usePreferences } from './context/PreferencesContext';
 import { ArchiveProvider } from './context/ArchiveContext';
+import { TransferProvider } from './context/TransferContext';
 import { ToastProvider } from './context/ToastContext';
 
 function Shell({ children }: { children: ReactNode }) {
@@ -55,6 +57,7 @@ function AppRoutes() {
       <Route path="/scan" element={<Scan />} />
       <Route path="/ocr" element={<Ocr />} />
       <Route path="/digitize" element={<Ocr />} />
+      <Route path="/send" element={<Send />} />
       <Route path="*" element={<NotFound />} />
     </Shell>
   );
@@ -75,9 +78,11 @@ export default function App() {
       <MotionGate>
         <Router>
           <ArchiveProvider>
-            <ToastProvider>
-              <AppRoutes />
-            </ToastProvider>
+            <TransferProvider>
+              <ToastProvider>
+                <AppRoutes />
+              </ToastProvider>
+            </TransferProvider>
           </ArchiveProvider>
         </Router>
       </MotionGate>

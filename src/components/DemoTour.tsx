@@ -23,9 +23,9 @@ const STEPS: TourStep[] = [
   { path: '/ask?doc=ms-001', labelKey: 'demo.step.5', dwell: 2600 },
   { path: '/digitize', labelKey: 'demo.step.6', dwell: 2600 },
   { path: '/scan', labelKey: 'demo.step.7', dwell: 2600 },
-  { path: '/digitize?auto=1', labelKey: 'demo.step.8', dwell: 5200 },
-  { path: '/digitize?auto=1&lang=hi', labelKey: 'demo.step.9', dwell: 5200 },
-  { path: '/digitize?auto=1&lang=hi', labelKey: 'demo.step.10', dwell: 5200 },
+  { path: '/digitize?auto=1', labelKey: 'demo.step.8', dwell: 7000 },
+  { path: '/digitize?auto=1&lang=hi', labelKey: 'demo.step.9', dwell: 7000 },
+  { path: '/digitize?auto=1&lang=hi', labelKey: 'demo.step.10', dwell: 7000 },
 ];
 
 export default function DemoTour() {

@@ -64,7 +64,7 @@ export const en = {
   'home.qr.title': 'Have a physical document?',
   'home.qr.desc': 'Scan to digitize and explore it digitally.',
   'home.qr.cta': 'Open the digitizer',
-  'home.qr.note': 'QR link · opens the digitizer',
+  'home.qr.note': 'Scan with your phone to upload a photo',
 
   'home.collections.eyebrow': 'Browse by type',
   'home.collections.title': 'Explore by Type',
@@ -183,11 +183,9 @@ export const en = {
   'scan.kicker': 'PHASE 2 · QR ACCESS',
   'scan.title': 'Scan a heritage QR code',
   'scan.desc':
-    'Point your camera at the QR code attached to a document or exhibit.',
-  'scan.frame.aria': 'QR scanning frame',
-  'scan.startCamera': 'START CAMERA',
+    'Scan the QR code on this screen with your phone to open the photo upload page.',
+  'scan.frame.aria': 'QR code — scan with your phone',
   'scan.demo': 'USE DEMO QR',
-  'scan.tryAgain': 'TRY AGAIN',
   'scan.back': 'Back to kiosk',
   'scan.demoHint': 'Demo mode needs no camera and always completes.',
   'scan.status': 'Scanner status',
@@ -196,28 +194,25 @@ export const en = {
   'scan.state.scanning': 'Scanning...',
   'scan.state.detecting': 'Detecting QR...',
   'scan.state.detected': 'QR detected',
-  'scan.state.opening': 'Opening archive record...',
-  'scan.state.camera': 'Looking for QR code…',
-  'scan.state.notDetected': 'QR not detected',
-
-  'scan.camera.denied': 'Camera permission denied',
-  'scan.camera.unavailable': 'Camera unavailable',
-  'scan.camera.desc':
-    'This kiosk browser did not grant camera access. Continue with demo mode to complete the demonstration.',
-  'scan.notDetected.desc':
-    'No readable QR code was found in view. Hold the code inside the frame, or continue with demo mode.',
-  'scan.toast': 'Heritage record successfully linked.',
+  'scan.state.opening': 'Opening the digitizer...',
+  'scan.toast': 'QR scan complete — opening the digitizer.',
 
   /* ---------------------------------- ocr ----------------------------------- */
   'ocr.kicker': 'PHASE 2 · OCR',
   'ocr.title': 'Digitize a Heritage Document',
   'ocr.desc':
-    'Place a document on the scanner bed and run the simulated recognition pipeline to produce searchable, translatable text.',
-  'ocr.preview': 'DOCUMENT PREVIEW',
+    'Scan the QR code with your phone, send a photo, and watch it become searchable, translatable text — the OCR engine runs right on this kiosk.',
+  'ocr.transfer': 'PHOTO TRANSFER',
   'ocr.output': 'OCR OUTPUT',
-  'ocr.idle': 'Place or scan a document to begin.',
-  'ocr.waiting': 'Waiting for a document…',
-  'ocr.start': 'START OCR',
+  'ocr.qr.caption': 'Scan with your phone',
+  'ocr.qr.hint':
+    'Your phone opens a page to pick a photo. The photo travels over the local network — no internet needed.',
+  'ocr.connecting': 'Opening the kiosk link…',
+  'ocr.waiting': 'Waiting for a photo from a phone…',
+  'ocr.connect.offline': 'Kiosk link offline — retrying…',
+  'ocr.idle': 'No photo yet — scan the QR code with your phone, or run the demo below.',
+  'ocr.simulate': 'SIMULATE A PHOTO',
+  'ocr.engine': 'Tesseract OCR runs on this kiosk — English only, fully offline.',
   'ocr.processing': 'Processing document',
 
   'ocr.step.1': 'Document detected',
@@ -227,15 +222,13 @@ export const en = {
   'ocr.step.5': 'Preparing digital record',
 
   'ocr.done': 'DOCUMENT DIGITIZED',
-  'ocr.result.original': 'ORIGINAL DOCUMENT',
   'ocr.result.extracted': 'EXTRACTED TEXT',
   'ocr.result.translated': 'TRANSLATED TEXT',
   'ocr.result.language': 'Detected language',
   'ocr.result.confidence': 'Confidence',
-  'ocr.result.type': 'Document type',
-  'ocr.result.date': 'Date',
-  'ocr.result.tags': 'Tags',
-  'ocr.result.sample': 'Simulated OCR output — not a verified transcription',
+  'ocr.result.file': 'File',
+  'ocr.result.words': 'Words / characters',
+  'ocr.result.sample': 'Automated OCR output — verify against the original before citing.',
 
   'ocr.add': 'ADD TO DIGITAL ARCHIVE',
   'ocr.added': 'ADDED TO ARCHIVE',
@@ -244,9 +237,30 @@ export const en = {
   'ocr.toast': 'Document successfully added to the Heritage Archive.',
 
   'ocr.error.title': 'OCR processing failed',
-  'ocr.error.desc': 'Unable to extract text. Try another image.',
+  'ocr.error.desc': 'Unable to extract text from this photo. Try another image.',
   'ocr.retry': 'RETRY',
   'ocr.useDemo': 'USE DEMO MODE',
+
+  /* -------------------------------- send (phone) ----------------------------- */
+  'send.kicker': 'PHONE → KIOSK',
+  'send.title': 'Send a photo to the kiosk',
+  'send.desc':
+    'Pick a photo on this phone. It travels directly to the kiosk over the local network — no internet required.',
+  'send.needQr': 'Open this page by scanning the QR code on the kiosk screen.',
+  'send.status.connecting': 'Connecting to the kiosk…',
+  'send.status.ready': 'Connected — choose a photo below',
+  'send.status.sent': 'Sent! Watch the kiosk screen.',
+  'send.status.closed': 'The connection closed. Please retry.',
+  'send.status.error': 'Could not reach the kiosk — is the Digitize screen open?',
+  'send.pick': 'CHOOSE A PHOTO',
+  'send.send': 'SEND TO KIOSK',
+  'send.sending': 'Sending… {percent}%',
+  'send.again': 'SEND ANOTHER PHOTO',
+  'send.retry': 'RETRY CONNECTION',
+  'send.error.decode': 'This photo could not be read. Try another image (JPEG or PNG).',
+  'send.step.1': 'Scan the QR code on the kiosk screen.',
+  'send.step.2': 'Choose or take a photo on your phone.',
+  'send.step.3': 'Watch the kiosk digitize it live.',
 
   /* --------------------------------- footer --------------------------------- */
   'footer.brand.1': 'AMBEDKAR',

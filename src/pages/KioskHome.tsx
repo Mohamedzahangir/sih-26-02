@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, FileScan, QrCode, Sparkles } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
 import ArchiveCard from '../components/ArchiveCard';
-import QrGlyph from '../components/QrGlyph';
+import ScanQr from '../components/ScanQr';
 import Footer from '../components/Footer';
 import { ButtonLink } from '../components/Button';
 import { COLLECTION_TILES, getFeatured } from '../data';
 import { asset } from '../lib/asset';
 import { CATEGORY_LABEL_KEYS, useT, type TranslationKey } from '../i18n';
 import { useArchive } from '../context/ArchiveContext';
+import { useTransfer } from '../context/TransferContext';
 
 const fadeUp = {
   initial: { opacity: 0, y: 26 },
@@ -26,6 +27,7 @@ const TILE_BLURB_KEYS: Record<string, TranslationKey> = {
 export default function KioskHome() {
   const t = useT();
   const { records } = useArchive();
+  const { qrUrl } = useTransfer();
   const featured = getFeatured(records);
 
   const quickCards: {
@@ -195,20 +197,17 @@ export default function KioskHome() {
             </div>
           </div>
 
-          <Link
-            to="/digitize"
-            className="group mx-auto block border border-gold/40 bg-ink-2 p-5 transition-colors duration-300 hover:border-gold lg:mx-0"
-          >
-            <QrGlyph
-              seed="digitize"
+          <div className="mx-auto border border-gold/40 bg-ink-2 p-5 transition-colors duration-300 lg:mx-0">
+            <ScanQr
+              value={qrUrl}
               size={196}
               label={t('home.qr.title')}
-              className="transition-transform duration-500 group-hover:scale-[1.03]"
+              className="mx-auto block"
             />
             <span className="mt-4 block text-center text-[0.62rem] font-semibold tracking-[0.22em] text-gold/80 uppercase">
               {t('home.qr.note')}
             </span>
-          </Link>
+          </div>
         </div>
       </section>
 

@@ -24,10 +24,17 @@ const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const consoleErrors = [];
 page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text()));
 
+// The transfer peer keeps a WebSocket open, so `networkidle` never fires.
+// Settle for the peer connection instead.
+const goto = async (url) => {
+  await page.goto(url, { waitUntil: 'load', timeout: 25000 });
+  await page.waitForTimeout(700);
+};
+
 console.log('[LANDMARKS + HEADINGS]');
-const ROUTES = ['/kiosk', '/archive', '/ask', '/document/ms-001', '/timeline', '/scan', '/ocr', '/digitize', '/missing-page'];
+const ROUTES = ['/kiosk', '/archive', '/ask', '/document/ms-001', '/timeline', '/scan', '/ocr', '/digitize', '/send', '/missing-page'];
 for (const route of ROUTES) {
-  await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+  await goto(`${BASE}${route}`);
 
   const landmarks = await page.evaluate(() => ({
     nav: document.querySelectorAll('nav').length,
@@ -54,7 +61,7 @@ for (const route of ROUTES) {
 }
 
 console.log('\n[KEYBOARD]');
-await page.goto(`${BASE}/document/ms-001`, { waitUntil: 'networkidle' });
+await goto(`${BASE}/document/ms-001`);
 const focusOrder = [];
 for (let i = 0; i < 8; i++) {
   await page.keyboard.press('Tab');
@@ -93,7 +100,7 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(500);
 ok((await page.locator('[role="dialog"]').count()) === 0, 'Escape closes the dialog');
 
-await page.goto(`${BASE}/archive`, { waitUntil: 'networkidle' });
+await goto(`${BASE}/archive`);
 await page.keyboard.press('Tab');
 await page.keyboard.press('Tab');
 const urlBefore = page.url();
@@ -123,7 +130,7 @@ const fontLoaded = async (family, sample, timeout = 6000) => {
   }
 };
 
-await page.goto(`${BASE}/archive`, { waitUntil: 'networkidle' });
+await goto(`${BASE}/archive`);
 await pickLanguage(/हिन्दी/);
 const hindi = await page.evaluate(() => ({
   lang: document.documentElement.lang,
@@ -156,7 +163,7 @@ ok(
 
 console.log('\n[REDUCED MOTION]');
 await page.emulateMedia({ reducedMotion: 'reduce' });
-await page.goto(`${BASE}/timeline`, { waitUntil: 'networkidle' });
+await goto(`${BASE}/timeline`);
 const motionOk = await page.evaluate(() => {
   const els = [...document.querySelectorAll('*')];
   return els.every((el) => getComputedStyle(el).animationDuration !== 'infinite');
@@ -165,7 +172,7 @@ ok(motionOk, 'no infinite animations under prefers-reduced-motion');
 await page.emulateMedia({ reducedMotion: 'no-preference' });
 
 console.log('\n[CONTRAST SPOT CHECK]');
-await page.goto(`${BASE}/kiosk`, { waitUntil: 'networkidle' });
+await goto(`${BASE}/kiosk`);
 const contrast = await page.evaluate(() => {
   const lum = (rgb) => {
     const [r, g, b] = rgb.map((v) => {

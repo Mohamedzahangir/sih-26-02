@@ -29,7 +29,9 @@ page.on('console', (msg) => {
 });
 page.on('pageerror', (err) => runtimeErrors.push(`pageerror: ${err.message}`));
 page.on('requestfailed', (req) => {
-  if (!req.url().includes('fonts.g')) runtimeErrors.push(`requestfailed: ${req.url()}`);
+  const failure = (req.failure() && req.failure().errorText) || '';
+  if (req.url().includes('fonts.g') || failure.includes('ERR_ABORTED')) return;
+  runtimeErrors.push(`requestfailed: ${req.url()}`);
 });
 page.on('response', (res) => {
   if (res.status() >= 400 && !res.url().includes('fonts.g')) {
@@ -292,7 +294,14 @@ ok(
   'scan page renders',
 );
 ok((await page.getByText('Ready to scan').count()) > 0, 'idle status shown');
-ok((await page.getByRole('button', { name: /START CAMERA/i }).count()) > 0, 'START CAMERA offered');
+ok((await page.getByRole('button', { name: /START CAMERA/i }).count()) === 0, 'camera controls removed (QR-only scan)');
+const scanQr = page.locator('canvas[data-qr="send"]');
+ok((await scanQr.count()) === 1, 'scan frame shows a real QR canvas');
+const scanQrValue = await scanQr.getAttribute('data-qr-value');
+ok(
+  typeof scanQrValue === 'string' && scanQrValue.includes('/send?p='),
+  `QR encodes the phone upload link (${scanQrValue})`,
+);
 await page.screenshot({ path: `${SHOT}/11-scan.png` });
 
 const status = page.getByLabel('Scanner status');
@@ -309,59 +318,40 @@ const lower = (value) => value.toLowerCase();
 ok(lower(stage1).includes('scanning'), `demo stage 1 (${stage1.trim()})`);
 ok(lower(stage2).includes('detecting'), `demo stage 2 (${stage2.trim()})`);
 ok(lower(stage3).includes('qr detected'), `demo stage 3 (${stage3.trim()})`);
-ok(lower(stage4).includes('opening archive'), `demo stage 4 (${stage4.trim()})`);
+ok(lower(stage4).includes('opening the digitizer'), `demo stage 4 (${stage4.trim()})`);
 
-await page.waitForURL('**/document/doc-001', { timeout: 7000 });
-await settle(500);
+await page.waitForURL('**/digitize?auto=1', { timeout: 8000 });
 ok(
-  (await page.getByText('Heritage record successfully linked.').count()) > 0,
-  'QR link toast shown',
-);
-ok(
-  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Chavadar'),
-  'demo QR opens the Chavadar Tank record',
+  (await page.getByText('QR scan complete — opening the digitizer.').count()) > 0,
+  'QR scan toast shown',
 );
 
-// camera path must always fall back to demo mode
-await go('/scan');
-await page.getByRole('button', { name: /START CAMERA/i }).click();
-await settle(7500);
-const cameraState = await status.innerText();
-ok(
-  /qr not detected|permission denied|camera unavailable/i.test(cameraState),
-  `camera path reaches an error state (${cameraState.trim()})`,
-);
-ok(
-  (await page.getByRole('button', { name: /USE DEMO QR/i }).count()) > 0,
-  'camera error still offers demo mode',
-);
-
-/* -------------------------------- 8. OCR ------------------------------- */
-console.log('\n[OCR /ocr]');
-await go('/ocr?state=error');
-ok((await page.getByText('OCR processing failed').count()) > 0, 'error state reachable via ?state=error');
-ok((await page.getByRole('button', { name: 'RETRY' }).count()) > 0, 'RETRY offered');
-await page.getByRole('button', { name: /USE DEMO MODE/i }).click();
-await settle(600);
-ok((await page.getByText('Waiting for a document…').count()) > 0, 'demo mode returns to idle');
-await page.screenshot({ path: `${SHOT}/12-ocr-idle.png` });
-
-await page.getByRole('button', { name: /START OCR/i }).click();
-await settle(1300);
-ok((await page.getByText('Document detected').count()) > 0, 'pipeline step 1 running');
-await settle(900);
-ok((await page.getByText('Recognizing text').count()) > 0, 'pipeline step 3 running');
-await page.getByText('DOCUMENT DIGITIZED').waitFor({ timeout: 12000 });
-await settle(1600);
+/* ------------------------- 8. OCR (real pipeline) ------------------------ */
+console.log('\n[OCR /digitize + /ocr]');
+// the demo QR above opened /digitize?auto=1, which runs the real OCR engine
+const autoOverlay = await page
+  .waitForSelector('text=Processing document', { timeout: 20000 })
+  .then(() => true)
+  .catch(() => false);
+ok(autoOverlay, 'full-screen processing overlay shown for the auto run');
+await page.getByText('DOCUMENT DIGITIZED').waitFor({ timeout: 90000 });
+await settle(2400);
 ok((await page.getByText('Detected language').count()) > 0, 'result metadata rendered');
-ok((await page.getByText('96%').count()) > 0, 'confidence value rendered');
-ok((await page.getByText('Simulated OCR output', { exact: false }).count()) > 0, 'sample disclaimer present');
+ok((await page.getByText('Confidence').count()) > 0, 'confidence row rendered');
+ok((await page.getByText('Automated OCR output', { exact: false }).count()) > 0, 'sample disclaimer present');
+const autoTextOk = await page
+  .waitForFunction(() => document.body.innerText.includes('CONSTITUTION OF INDIA'), null, { timeout: 20000 })
+  .then(() => true)
+  .catch(() => false);
+ok(autoTextOk, 'real OCR extracted the sample document text');
 
 const ocrPanels = page.locator('.paper p.whitespace-pre-line');
 ok((await ocrPanels.count()) === 2, `extracted + translated panels rendered (${await ocrPanels.count()})`);
 const extractedText = (await ocrPanels.first().innerText()).trim();
 ok(extractedText.includes('CONSTITUTION OF INDIA'), 'extracted text revealed');
-await page.getByRole('radio', { name: 'हिन्दी', exact: true }).click();
+const hindiRadio = page.getByRole('radio', { name: 'हिन्दी', exact: true });
+ok((await hindiRadio.count()) > 0, 'matched sample offers translation');
+await hindiRadio.click();
 await settle(800);
 const ocrHindi = (await ocrPanels.nth(1).innerText()).trim();
 ok(ocrHindi !== extractedText && ocrHindi.includes('भारत का संविधान'), 'OCR text translates to Hindi');
@@ -384,6 +374,47 @@ const cardsAfter = await page.locator('main article').count();
 ok(cardsAfter === 16, `archive holds 16 records after adding (got ${cardsAfter})`);
 ok((await page.getByText('Added this session').count()) > 0, 'session badge shown on the new record');
 await page.screenshot({ path: `${SHOT}/14-archive-session.png` });
+
+/* --------------------- 8b. DIGITIZER WAIT + ALIASES --------------------- */
+console.log('\n[DIGITIZER WAIT STATE]');
+await go('/digitize');
+ok(
+  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Digitize a Heritage Document'),
+  '/digitize renders the OCR desk',
+);
+const transferOnline = await page
+  .waitForSelector('text=Waiting for a photo from a phone', { timeout: 12000 })
+  .then(() => true)
+  .catch(() => false);
+ok(transferOnline, 'kiosk transfer link online — waiting for a photo');
+ok((await page.locator('canvas[data-qr="send"]').count()) === 1, 'digitizer shows the phone-upload QR');
+ok((await page.getByText('No photo yet').count()) > 0, 'idle prompt rendered');
+ok((await page.getByRole('button', { name: /SIMULATE A PHOTO/i }).count()) === 1, 'SIMULATE A PHOTO offered');
+ok((await page.getByText('Tesseract OCR runs on this kiosk').count()) > 0, 'engine note shown');
+await page.screenshot({ path: `${SHOT}/12-ocr-idle.png` });
+
+await go('/ocr');
+ok(
+  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Digitize a Heritage Document'),
+  '/ocr alias renders the same desk',
+);
+
+await go('/ocr?state=error');
+ok((await page.getByText('OCR processing failed').count()) > 0, 'error state reachable via ?state=error');
+ok((await page.getByRole('button', { name: 'RETRY' }).count()) > 0, 'RETRY offered');
+ok((await page.getByRole('button', { name: /USE DEMO MODE/i }).count()) > 0, 'USE DEMO MODE offered');
+await page.getByRole('button', { name: 'RETRY' }).click();
+await settle(600);
+ok((await page.getByText('No photo yet').count()) > 0, 'RETRY returns to the waiting state');
+
+await page.getByRole('button', { name: /SIMULATE A PHOTO/i }).click();
+const simOverlay = await page
+  .waitForSelector('text=Processing document', { timeout: 20000 })
+  .then(() => true)
+  .catch(() => false);
+ok(simOverlay, 'SIMULATE A PHOTO starts the pipeline');
+await page.getByText('DOCUMENT DIGITIZED').waitFor({ timeout: 90000 });
+ok((await page.getByText('Detected language').count()) > 0, 'simulated photo digitizes');
 
 /* ---------------------------- 9. ENTRY POINTS -------------------------- */
 console.log('\n[ENTRY POINTS /kiosk]');
@@ -448,23 +479,64 @@ await page.click('[role="dialog"] button[aria-label="Close"]');
 await settle(400);
 ok((await page.locator('[role="dialog"]').count()) === 0, 'demo popover closes');
 
-console.log('\n[DIGITIZE /digitize + /ocr]');
+/* ------------------------ PHONE → KIOSK /send --------------------------- */
+console.log('\n[PHONE → KIOSK /send]');
 await go('/digitize');
+const sendUrlValue = await page.locator('canvas[data-qr="send"]').getAttribute('data-qr-value');
 ok(
-  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Digitize a Heritage Document'),
-  '/digitize renders the OCR desk',
+  typeof sendUrlValue === 'string' && sendUrlValue.includes('/send?p='),
+  `QR payload targets the send page (${sendUrlValue})`,
 );
-await go('/ocr');
+
+const phone = await ctx.newPage();
+await phone.setViewportSize({ width: 390, height: 844 });
+const phoneErrors = [];
+phone.on('pageerror', (err) => phoneErrors.push(err.message));
+phone.on('console', (msg) => {
+  if (msg.type() === 'error') phoneErrors.push(`console: ${msg.text()}`);
+});
+await phone.goto(sendUrlValue, { waitUntil: 'load', timeout: 20000 });
+await settle(1000);
 ok(
-  (await page.getByRole('heading', { level: 1 }).innerText()).includes('Digitize a Heritage Document'),
-  '/ocr alias renders the same desk',
+  (await phone.getByRole('heading', { level: 1 }).innerText()).includes('Send a photo to the kiosk'),
+  'phone upload page renders from the QR link',
 );
+const phoneReady = await phone
+  .waitForSelector('text=Connected — choose a photo below', { timeout: 20000 })
+  .then(() => true)
+  .catch(() => false);
+ok(phoneReady, 'phone connected to the kiosk peer');
+await phone.setInputFiles('#send-photo', 'public/images/ocr-sample.png');
+await settle(600);
+ok((await phone.getByText('ocr-sample.png').count()) > 0, 'picked photo listed');
+await phone.getByRole('button', { name: /SEND TO KIOSK/i }).click();
+const phoneSent = await phone
+  .waitForSelector('text=Sent! Watch the kiosk screen.', { timeout: 25000 })
+  .then(() => true)
+  .catch(() => false);
+ok(phoneSent, 'phone reports the photo sent');
+const recvOverlay = await page
+  .waitForSelector('text=Processing document', { timeout: 25000 })
+  .then(() => true)
+  .catch(() => false);
+ok(recvOverlay, 'kiosk opens the processing overlay for the received photo');
+await page.getByText('DOCUMENT DIGITIZED').waitFor({ timeout: 90000 });
+await settle(2400);
+const receivedTextOk = await page
+  .waitForFunction(() => document.body.innerText.includes('CONSTITUTION OF INDIA'), null, { timeout: 20000 })
+  .then(() => true)
+  .catch(() => false);
+ok(receivedTextOk, 'kiosk OCR extracted text from the phone-transferred photo');
+await page.screenshot({ path: `${SHOT}/17-phone-ocr.png` });
+ok(phoneErrors.length === 0, `phone page free of runtime errors (${phoneErrors.join(' | ') || 'none'})`);
+await phone.close();
+
 await go('/digitize?auto=1&lang=hi');
 ok(
   (await page.getByText(/Processing document|Document detected|Recognizing text|DOCUMENT DIGITIZED/i).count()) >= 1,
   '?auto=1 auto-starts the pipeline',
 );
-await page.waitForSelector('text=DOCUMENT DIGITIZED', { timeout: 15000 });
+await page.waitForSelector('text=DOCUMENT DIGITIZED', { timeout: 90000 });
 ok(
   (await page.getByRole('radio', { name: 'हिन्दी', exact: true }).getAttribute('aria-checked')) === 'true',
   '?lang=hi preselects the Hindi translation',
