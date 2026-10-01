@@ -18,6 +18,7 @@ import Timeline from './pages/Timeline';
 import Scan from './pages/Scan';
 import Ocr from './pages/Ocr';
 import Send from './pages/Send';
+import MobileSend from './pages/MobileSend';
 import NotFound from './pages/NotFound';
 import { PreferencesProvider, usePreferences } from './context/PreferencesContext';
 import { ArchiveProvider } from './context/ArchiveContext';
@@ -58,6 +59,7 @@ function AppRoutes() {
       <Route path="/ocr" element={<Ocr />} />
       <Route path="/digitize" element={<Ocr />} />
       <Route path="/send" element={<Send />} />
+      <Route path="/mobile-send" element={<MobileSend />} />
       <Route path="*" element={<NotFound />} />
     </Shell>
   );
@@ -70,7 +72,8 @@ function MotionGate({ children }: { children: ReactNode }) {
   );
 }
 
-const Router = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
+const useHashRouter = window.location.protocol === 'file:' || window.location.hash.startsWith('#/mobile-send');
+const Router = useHashRouter ? HashRouter : BrowserRouter;
 
 export default function App() {
   return (
