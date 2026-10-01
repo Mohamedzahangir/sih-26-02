@@ -40,6 +40,9 @@ function firstLanIPv4() {
 }
 
 let workerPromise = null;
+
+// One waiting upload is enough for this single-kiosk workflow.
+let pendingTransfer = null;
 /** Logger forwarder for the job currently running (worker logger is global). */
 let activeForward = null;
 let queued = [];
@@ -159,8 +162,47 @@ export function createOcrMiddleware() {
         ? String(req.headers.host).split(':').pop()
         : '';
       const selectedHost = lanHost ?? host;
-      const origin = selectedHost ? `http://${selectedHost}${port ? `:${port}` : ''}` : '';
+      const protocol = String(req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
+      const origin = selectedHost ? `${protocol}://${selectedHost}${port ? `:${port}` : ''}` : '';
       writeJson(res, 200, { ok: Boolean(origin), origin });
+      return;
+    }
+
+    if (pathname === '/api/transfer' && req.method === 'POST') {
+      readBody(req)
+        .then((buffer) => {
+          if (!buffer.length) {
+            writeJson(res, 400, { ok: false, error: 'empty image' });
+            return;
+          }
+          pendingTransfer = {
+            buffer,
+            contentType: String(req.headers['content-type'] || 'image/jpeg').split(';')[0],
+            fileName: String(req.headers['x-file-name'] || 'document.jpg'),
+          };
+          writeJson(res, 200, { ok: true });
+        })
+        .catch((error) => {
+          if (!res.headersSent) writeJson(res, 413, { ok: false, error: String(error?.message ?? error) });
+        });
+      return;
+    }
+
+    if (pathname === '/api/transfer/next' && req.method === 'GET') {
+      if (!pendingTransfer) {
+        res.writeHead(204, { 'Cache-Control': 'no-store' });
+        res.end();
+        return;
+      }
+      const transfer = pendingTransfer;
+      pendingTransfer = null;
+      res.writeHead(200, {
+        'Content-Type': transfer.contentType,
+        'Content-Length': transfer.buffer.length,
+        'X-File-Name': transfer.fileName,
+        'Cache-Control': 'no-store',
+      });
+      res.end(transfer.buffer);
       return;
     }
 
