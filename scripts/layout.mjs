@@ -29,6 +29,14 @@ const ok = (cond, label) => {
   }
 };
 
+try {
+  const res = await fetch(`${BASE}/`, { signal: AbortSignal.timeout(4000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+} catch (error) {
+  console.error(`\nCannot reach ${BASE} — start the dev server first: npm run dev\n(${error.message})`);
+  process.exit(1);
+}
+
 const browser = await chromium.launch({ executablePath: EXE, headless: true });
 
 for (const viewport of VIEWPORTS) {

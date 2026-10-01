@@ -19,6 +19,15 @@ const ok = (cond, label) => {
 };
 
 const EXE = process.env.CHROME_EXE || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+
+try {
+  const res = await fetch(`${BASE}/`, { signal: AbortSignal.timeout(4000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+} catch (error) {
+  console.error(`\nCannot reach ${BASE} — start the dev server first: npm run dev\n(${error.message})`);
+  process.exit(1);
+}
+
 const browser = await chromium.launch({ executablePath: EXE, headless: true });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const consoleErrors = [];

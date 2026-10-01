@@ -7,14 +7,20 @@
  */
 import fs from 'node:fs';
 import http from 'node:http';
+import net from 'node:net';
 import path from 'node:path';
-import { createOcrMiddleware } from './ocrApi.mjs';
+import { createOcrMiddleware } from './server/ocrApi.mjs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 
 const PORT = Number(process.env.PORT || 5173);
 const DIST = path.join(process.cwd(), 'dist');
+
+if (!fs.existsSync(path.join(DIST, 'index.html'))) {
+  console.error('[kiosk] dist/index.html not found — run `npm run build` first.');
+  process.exit(1);
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -58,14 +64,34 @@ const server = http.createServer((req, res) => {
   serveStatic(req, res, pathname);
 });
 
-try {
-  const { PeerServer } = require('peer');
-  PeerServer({ port: 9000, path: '/peerjs' }, () => {
-    console.log('[kiosk] peer broker listening on :9000/peerjs');
+const portFree = (port) =>
+  new Promise((resolve) => {
+    const probe = net.createServer();
+    probe.once('error', () => resolve(false));
+    probe.once('listening', () => probe.close(() => resolve(true)));
+    probe.listen(port);
   });
-} catch (error) {
-  console.warn(`[kiosk] peer broker failed to start: ${error?.message ?? error}`);
+
+if (await portFree(9000)) {
+  try {
+    const { PeerServer } = require('peer');
+    PeerServer({ port: 9000, path: '/peerjs' }, () => {
+      console.log('[kiosk] peer broker listening on :9000/peerjs');
+    });
+  } catch (error) {
+    console.warn(`[kiosk] peer broker failed to start: ${error?.message ?? error}`);
+  }
+} else {
+  console.warn('[kiosk] peer broker already running on :9000 — reusing it (npm run dev?)');
 }
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`[kiosk] port ${PORT} is already in use — stop the other server or run with PORT=<other>`);
+    process.exit(1);
+  }
+  throw error;
+});
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`[kiosk] Ambedkar Heritage Hub on http://localhost:${PORT}`);
