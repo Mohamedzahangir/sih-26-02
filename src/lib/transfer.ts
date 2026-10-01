@@ -19,9 +19,32 @@ export const KIOSK_PEER_ID = `ahh-kiosk-${Math.random().toString(36).slice(2, 10
   .toString(36)
   .slice(-4)}`;
 
-/** The URL encoded in every QR code the kiosk displays. */
-export function sendUrl(): string {
-  return `${window.location.origin}/send?p=${KIOSK_PEER_ID}`;
+/** Fallback URL used until the kiosk service resolves a LAN-reachable origin. */
+export function sendUrl(origin = window.location.origin): string {
+  return `${origin}/send?p=${KIOSK_PEER_ID}`;
+}
+
+/**
+ * Resolve an origin that the visitor's phone can actually reach.
+ * When the kiosk UI itself was opened on localhost, the server substitutes
+ * the kiosk machine's first non-loopback IPv4 address for the QR payload.
+ */
+export async function resolveSendUrl(): Promise<string> {
+  const currentOrigin = window.location.origin;
+  const host = window.location.hostname;
+  const loopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  if (!loopback) return sendUrl(currentOrigin);
+
+  try {
+    const response = await fetch('/api/kiosk-url', { cache: 'no-store' });
+    if (response.ok) {
+      const payload = (await response.json()) as { origin?: string };
+      if (payload.origin) return sendUrl(payload.origin);
+    }
+  } catch {
+    /* keep the local fallback for environments without the kiosk service */
+  }
+  return sendUrl(currentOrigin);
 }
 
 export function kioskPeerOptions() {
