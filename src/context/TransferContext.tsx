@@ -15,6 +15,7 @@ import {
   sendUrl,
   type ReceivedPhoto,
   type TransferMessage,
+  resolveSendUrl,
 } from '../lib/transfer';
 
 type TransferStatus = 'starting' | 'online' | 'offline';
@@ -214,18 +215,7 @@ export function TransferProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    void import('../lib/transfer').then(({ resolveSendUrl }) => {
-      if (active) setQrUrl(resolveSendUrl ? '' : '');
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    void import('../lib/transfer').then(async ({ resolveSendUrl }) => {
-      const resolved = await resolveSendUrl();
+    void resolveSendUrl().then((resolved) => {
       if (active) setQrUrl(resolved);
     });
     return () => {
