@@ -13,13 +13,12 @@ export async function resolveSendUrl(): Promise<string> {
   const currentOrigin = window.location.origin;
   const host = window.location.hostname;
   const loopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  if (!loopback) return sendUrl(currentOrigin);
   try {
     const response = await fetch('/api/kiosk-url', { cache: 'no-store' });
     if (response.ok) {
       const payload = (await response.json()) as { origin?: string };
       if (payload.origin) return sendUrl(payload.origin);
     }
-  } catch { /* use current origin */ }
+  } catch { /* public deployments fall back to their own origin */ }
   return sendUrl(currentOrigin);
 }
