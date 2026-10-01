@@ -74,14 +74,14 @@ export function buildOcrRecord(run: OcrRunInput): ArchiveRecord {
       title: ocrDocument.title,
       year: ocrDocument.year,
       type: ocrDocument.type,
-      description: ocrDocument.description,
+      description:
+        'Document digitised in this kiosk session from the visitor photo by the on-machine OCR pipeline.',
       language: ocrDocument.language,
-      source: ocrDocument.source,
-      tags: ocrDocument.tags,
-      image: ocrDocument.image,
+      source: 'Visitor upload — kiosk OCR desk',
+      tags: [...ocrDocument.tags],
+      image: run.image,
       text: run.text,
-      isSample: true,
-      credit: ocrDocument.credit,
+      isSample: false,
     };
   }
   const title = run.fileName.replace(/\.[^.]+$/, '').trim() || 'Scanned document';
