@@ -151,6 +151,19 @@ export function createOcrMiddleware() {
       return;
     }
 
+    if (pathname === '/api/kiosk-url' && req.method === 'GET') {
+      const host = String(req.headers.host ?? '').split(':')[0];
+      const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+      const lanHost = isLoopback ? firstLanIPv4() : null;
+      const port = String(req.headers.host ?? '').includes(':')
+        ? String(req.headers.host).split(':').pop()
+        : '';
+      const selectedHost = lanHost ?? host;
+      const origin = selectedHost ? `http://${selectedHost}${port ? `:${port}` : ''}` : '';
+      writeJson(res, 200, { ok: Boolean(origin), origin });
+      return;
+    }
+
     if (pathname === '/api/ocr' && req.method === 'POST') {
       readBody(req)
         .then((buffer) => {
