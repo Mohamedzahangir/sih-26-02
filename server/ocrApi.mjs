@@ -29,6 +29,16 @@ const CACHE_DIR = path.join(os.tmpdir(), 'ahh-tessdata');
 const MAX_BODY_BYTES = 30 * 1024 * 1024;
 const JOB_TIMEOUT_MS = 45000;
 
+function firstLanIPv4() {
+  const interfaces = os.networkInterfaces();
+  for (const entries of Object.values(interfaces)) {
+    for (const entry of entries ?? []) {
+      if (entry.family === 'IPv4' && !entry.internal) return entry.address;
+    }
+  }
+  return null;
+}
+
 let workerPromise = null;
 /** Logger forwarder for the job currently running (worker logger is global). */
 let activeForward = null;
