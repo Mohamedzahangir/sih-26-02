@@ -12,7 +12,6 @@ import { Peer, type DataConnection } from 'peerjs';
 import {
   KIOSK_PEER_ID,
   kioskPeerOptions,
-  sendUrl,
   type ReceivedPhoto,
   type TransferMessage,
   resolveSendUrl,
