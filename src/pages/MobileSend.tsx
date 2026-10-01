@@ -69,16 +69,37 @@ export default function MobileSend() {
             className="sr-only"
             onChange={choose}
           />
-          <label
-            htmlFor="mobile-document"
-            className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-3 border border-dashed border-gold/40 px-5 text-center hover:border-gold"
-          >
-            <ImageIcon size={25} className="text-gold" />
-            <span className="text-sm font-semibold tracking-[0.12em] uppercase">
-              Take / Choose Document Photo
-            </span>
-            <span className="text-xs text-cool">Use your camera or select an image</span>
-          </label>
+          <input
+            id="mobile-gallery"
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={choose}
+          />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label
+              htmlFor="mobile-document"
+              className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-3 border border-gold/35 px-4 text-center transition-colors hover:border-gold hover:bg-gold/5"
+            >
+              <ImageIcon size={25} className="text-gold" />
+              <span className="text-sm font-semibold tracking-[0.12em] uppercase">
+                Take Photo
+              </span>
+              <span className="text-xs text-cool">Open camera</span>
+            </label>
+
+            <label
+              htmlFor="mobile-gallery"
+              className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-3 border border-gold/35 px-4 text-center transition-colors hover:border-gold hover:bg-gold/5"
+            >
+              <ImageIcon size={25} className="text-gold" />
+              <span className="text-sm font-semibold tracking-[0.12em] uppercase">
+                Upload from Gallery
+              </span>
+              <span className="text-xs text-cool">Choose an image</span>
+            </label>
+          </div>
 
           {file && (
             <div className="mt-4 truncate border border-gold/15 px-4 py-3 text-xs text-cool">
