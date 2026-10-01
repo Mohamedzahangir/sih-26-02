@@ -1,12 +1,12 @@
 /**
  * Simple phone → kiosk transfer.
- * The kiosk QR opens /send on the same LAN server. The phone uploads the
+ * The kiosk QR opens the hash-based mobile upload page. The phone uploads the
  * image to /api/transfer and the kiosk polls for the next image.
  */
 export interface ReceivedPhoto { name: string; blob: Blob; url: string; }
 
 export function sendUrl(origin = window.location.origin): string {
-  return `${origin}/send`;
+  return `${origin}/#/mobile-send`;
 }
 
 export async function resolveSendUrl(): Promise<string> {
