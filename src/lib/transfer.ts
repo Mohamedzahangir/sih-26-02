@@ -12,7 +12,6 @@ export function sendUrl(origin = window.location.origin): string {
 export async function resolveSendUrl(): Promise<string> {
   const currentOrigin = window.location.origin;
   const host = window.location.hostname;
-  const loopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
   try {
     const response = await fetch('/api/kiosk-url', { cache: 'no-store' });
     if (response.ok) {
