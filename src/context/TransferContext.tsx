@@ -210,14 +210,37 @@ export function TransferProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const [qrUrl, setQrUrl] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    void import('../lib/transfer').then(({ resolveSendUrl }) => {
+      if (active) setQrUrl(resolveSendUrl ? '' : '');
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void import('../lib/transfer').then(async ({ resolveSendUrl }) => {
+      const resolved = await resolveSendUrl();
+      if (active) setQrUrl(resolved);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const value = useMemo<TransferValue>(
     () => ({
       status,
-      qrUrl: sendUrl(),
+      qrUrl,
       takePending,
       subscribePhoto,
     }),
-    [status, takePending, subscribePhoto],
+    [status, qrUrl, takePending, subscribePhoto],
   );
 
   return <TransferContext.Provider value={value}>{children}</TransferContext.Provider>;
