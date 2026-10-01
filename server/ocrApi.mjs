@@ -42,7 +42,8 @@ function firstLanIPv4() {
 let workerPromise = null;
 
 // One waiting upload is enough for this single-kiosk workflow.
-let pendingTransfer = null;
+const transferQueue = [];
+const MAX_TRANSFER_QUEUE = 5;
 /** Logger forwarder for the job currently running (worker logger is global). */
 let activeForward = null;
 let queued = [];
@@ -175,12 +176,16 @@ export function createOcrMiddleware() {
             writeJson(res, 400, { ok: false, error: 'empty image' });
             return;
           }
-          pendingTransfer = {
+          if (transferQueue.length >= MAX_TRANSFER_QUEUE) {
+            writeJson(res, 429, { ok: false, error: 'kiosk transfer queue is full' });
+            return;
+          }
+          transferQueue.push({
             buffer,
             contentType: String(req.headers['content-type'] || 'image/jpeg').split(';')[0],
             fileName: String(req.headers['x-file-name'] || 'document.jpg'),
-          };
-          writeJson(res, 200, { ok: true });
+          });
+          writeJson(res, 200, { ok: true, queued: transferQueue.length });
         })
         .catch((error) => {
           if (!res.headersSent) writeJson(res, 413, { ok: false, error: String(error?.message ?? error) });
@@ -189,13 +194,12 @@ export function createOcrMiddleware() {
     }
 
     if (pathname === '/api/transfer/next' && req.method === 'GET') {
-      if (!pendingTransfer) {
+      if (!transferQueue.length) {
         res.writeHead(204, { 'Cache-Control': 'no-store' });
         res.end();
         return;
       }
-      const transfer = pendingTransfer;
-      pendingTransfer = null;
+      const transfer = transferQueue.shift();
       res.writeHead(200, {
         'Content-Type': transfer.contentType,
         'Content-Length': transfer.buffer.length,
